@@ -2,6 +2,7 @@ project(glengine)
 
 cmake_minimum_required(VERSION 3.0.2)
 
+set(RESOURCES_DIRECTORY "${PROJECT_SOURCE_DIR}/resources/")
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(INC_DIR "${PROJECT_SOURCE_DIR}/include/")
 
@@ -16,6 +17,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include BEFORE)
 set(SRC
   ${SRC_DIR}/glengine.cpp
   ${SRC_DIR}/shader.cpp
+  ${SRC_DIR}/mesh.cpp
 )
 
 set(HEADER

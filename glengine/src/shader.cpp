@@ -14,7 +14,9 @@ namespace GLEngine {
         fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         try {
             // open files
+            std::cout << "Reading " << vertexPath << "..." << std::endl;
             vShaderFile.open(vertexPath);
+            std::cout << "Reading " << fragmentPath << "..." << std::endl;
             fShaderFile.open(fragmentPath);
             std::stringstream vShaderStream, fShaderStream;
             // read file's buffer contents into streams
@@ -57,7 +59,7 @@ namespace GLEngine {
         glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
         };
 
         // shader Program
