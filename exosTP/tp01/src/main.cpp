@@ -1,11 +1,22 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <chrono>
+#include <vector>
+#include <glengine/shader.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "tp01/config.hpp"
+
+using namespace GLEngine;
+
+int w = 800, h = 600;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, width, height);
+    w = width;
+    h = height;
+    glViewport(0, 0, w, h);
 }
 
 int main() {
@@ -19,7 +30,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "TP1", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(w, h, "TP1", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -27,6 +38,7 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -34,114 +46,120 @@ int main() {
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, w, h);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    float vertices[] = {
-            0.5f,  0.5f, 0.0f,  // top right
-            0.5f, -0.5f, 0.0f,  // bottom right
-            -0.5f, -0.5f, 0.0f,  // bottom left
-            -0.5f,  0.5f, 0.0f   // top left
+
+    std::vector<float> vertices = {
+            // position            // colors
+            -0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,
+            0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,
+
+            -0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
+
+            -0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
+
+            0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
+
+            -0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,
+
+            -0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,
     };
-    unsigned int indices[] = {  // note that we start from 0!
-            0, 1, 3,   // first triangle
-            1, 2, 3    // second triangle
-    };
+
+    Shader shader = Shader(
+            std::string(_resources_directory).append("shader/simple.vert").c_str(),
+            std::string(_resources_directory).append("shader/simple.frag").c_str()
+            );
 
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    const char *vertexShaderSource = "#version 330 core\n"
-                                     "layout (location = 0) in vec3 aPos;\n"
-                                     "void main()\n"
-                                     "{\n"
-                                     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                     "}\0";
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    int  success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    const char *fragmentShaderSource = "#version 330 core\n"
-                                       "out vec4 FragColor;\n"
-                                       "\n"
-                                       "void main()\n"
-                                       "{\n"
-                                       "    FragColor = vec4(1.0f, 0.5f, 1.0f, 1.0f);\n"
-                                       "}";
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-    }
-    glUseProgram(shaderProgram);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
-    // ..:: Initialization code :: ..
-    // 1. bind Vertex Array Object
     glBindVertexArray(VAO);
-    // 2. copy our vertices array in a vertex buffer for OpenGL to use
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // 3. copy our index array in an element buffer for OpenGL to use
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    // 4. then set the vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof (float)));
+    glEnableVertexAttribArray(1);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    auto start = std::chrono::steady_clock::now();
-    int i = 0;
+    double start = glfwGetTime();
+    float rotation = 0;
+    double timeBeforeRefresh = 0;
     while(!glfwWindowShouldClose(window))
     {
-        auto end = std::chrono::steady_clock::now();
-        auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-        start = std::chrono::steady_clock::now();
+        // FPS
+        double end = glfwGetTime();
+        double frameTime = end - start;
+        start = (float)glfwGetTime();
 
-        if (i%3000 == 0) {
-            std::string title = "FPS : " + std::to_string(1000000000/(int)time);
-
+        timeBeforeRefresh -= frameTime;
+        if (timeBeforeRefresh <= 0) {
+            std::string title = "FPS : " + std::to_string(int(1.f/frameTime)) + ", frame time : " + std::to_string(frameTime) + "ms";
             glfwSetWindowTitle(window, title.c_str());
+            timeBeforeRefresh = 0.5;
         }
-        i++;
 
-        // ..:: Drawing code (in render loop) :: ..
-        // 4. draw the object
-        glUseProgram(shaderProgram);
+        rotation += float(frameTime*30.0f);
 
-        //glBindVertexArray(VAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 view = glm::mat4(1.0f);
+        // note that we're translating the scene in the reverse direction of where we want to move
+        view = glm::rotate(glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)), glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 projection;
+        projection = glm::perspective(glm::radians(45.f), float(w)/float(h), 0.1f, 100.0f);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        shader.setMat4fv("model", model);
+        shader.setMat4fv("view", view);
+        shader.setMat4fv("projection", projection);
+
+        glEnable(GL_DEPTH_TEST);
+
+
+        // Draw
+        glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        shader.use();
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+
     }
 
     glfwTerminate();
