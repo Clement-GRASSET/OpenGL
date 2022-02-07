@@ -1,3 +1,6 @@
+#ifndef mesh
+#define mesh
+
 #include <vector>
 #include "shader.hpp"
 
@@ -25,6 +28,10 @@ namespace GLEngine {
         inline void setVertices(std::vector<float> _vertices) { vertices = _vertices; }
         inline void setIndices(std::vector<unsigned int> _indices) { indices = _indices; }
 
+        void debug() const;
+
     };
 
 }
+
+#endif

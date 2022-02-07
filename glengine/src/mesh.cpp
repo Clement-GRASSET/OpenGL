@@ -33,7 +33,7 @@ namespace GLEngine {
         glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
         // 3. copy our index array in a element buffer for OpenGL to use
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
         // 4. then set the vertex attributes pointers
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
@@ -60,6 +60,22 @@ namespace GLEngine {
 
     void Mesh::setShader(Shader *shader) {
         Mesh::shader = shader;
+    }
+
+    void Mesh::debug() const {
+        std::cout << "Vertices :" << std::endl;
+        for (int i = 0; i < vertices.size(); ++i) {
+            std::cout << vertices[i] << ", ";
+            if (i%3 == 2)
+                std::cout << std::endl;
+        }
+
+        std::cout << "Indices :" << std::endl;
+        for (int i = 0; i < indices.size(); ++i) {
+            std::cout << indices[i] << ", ";
+            if (i%3 == 2)
+                std::cout << std::endl;
+        }
     }
 
 

@@ -1,15 +1,16 @@
-#include <cmath>
-
 #include "mesh.hpp"
 
 namespace GLEngine {
 
-    class Disk : public Mesh {
+    class Terrain : public Mesh {
 
     public:
-        Disk(float radius = 0.5f, unsigned int nbSegments = 16)
+        Terrain()
         : Mesh()
         {
+            float radius = 2.f;
+            unsigned int nbSegments = 16;
+
             std::vector<float> vertices;
             std::vector<unsigned int> indices;
 
@@ -21,8 +22,8 @@ namespace GLEngine {
                 float angle = glm::radians(float(i)/float(nbSegments) * 360.f);
 
                 vertices.push_back(std::cos(angle) * radius);
-                vertices.push_back(std::sin(angle) * radius);
                 vertices.push_back(0.f);
+                vertices.push_back(std::sin(angle) * radius);
 
                 indices.push_back(0);
                 indices.push_back(i+1);

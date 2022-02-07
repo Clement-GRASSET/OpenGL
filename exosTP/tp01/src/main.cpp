@@ -8,6 +8,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "glengine/disc.hpp"
+#include "glengine/terrain.hpp"
 //#include "tp01/config.hpp"
 
 using namespace GLEngine;
@@ -52,20 +54,21 @@ int main() {
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Pour passer en wireframe
     glEnable(GL_DEPTH_TEST);
 
     std::vector<Mesh*> meshes;
 
-    meshes.push_back(new Mesh());
-    meshes.at(0)->setPosition(glm::vec3(1.f, 1.f, 0.f));
+    meshes.push_back(new Square());
+    meshes.at(0)->setPosition(glm::vec3(0.f, 1.f, 0.f));
     meshes.at(0)->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
 
-    meshes.push_back(new Square());
-    meshes.at(1)->setPosition(glm::vec3(0.f, -1.f, 1.f));
+    meshes.push_back(new Terrain());
+    meshes.at(1)->setPosition(glm::vec3(0.f, 0.f, 0.f));
     meshes.at(1)->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
 
-    meshes.push_back(new Mesh());
-    meshes.at(2)->setPosition(glm::vec3(-1.f, 0.f, -1.f));
+    meshes.push_back(new Disk());
+    meshes.at(2)->setPosition(glm::vec3(0.f, 0.f, 0.f));
     meshes.at(2)->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
 
     double start = glfwGetTime();
@@ -89,7 +92,9 @@ int main() {
 
         glm::mat4 view = glm::mat4(1.0f);
         // note that we're translating the scene in the reverse direction of where we want to move
-        view = glm::rotate(glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)), glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::rotate(view, glm::radians(30.f), glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.f), float(w)/float(h), 0.1f, 100.0f);
 
