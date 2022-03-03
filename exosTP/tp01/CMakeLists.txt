@@ -2,7 +2,7 @@
 project(tp01)
 cmake_minimum_required(VERSION 3.8.2)
 
-set(RESOURCES_DIRECTORY "${PROJECT_SOURCE_DIR}/resources/")
+set(RESOURCES_DIRECTORY_TP1 "${PROJECT_SOURCE_DIR}/resources/")
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(INC_DIR "${PROJECT_SOURCE_DIR}/include/")
 

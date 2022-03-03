@@ -1,3 +1,6 @@
+#ifndef SQUARE_HPP
+#define SQUARE_HPP
+
 #include "mesh.hpp"
 
 namespace GLEngine {
@@ -26,3 +29,5 @@ namespace GLEngine {
     };
 
 }
+
+#endif

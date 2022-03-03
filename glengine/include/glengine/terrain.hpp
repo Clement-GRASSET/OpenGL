@@ -1,3 +1,6 @@
+#ifndef TERRAIN_HPP
+#define TERRAIN_HPP
+
 #include "mesh.hpp"
 
 namespace GLEngine {
@@ -18,7 +21,7 @@ namespace GLEngine {
             vertices.push_back(0.f);
             vertices.push_back(0.f);
 
-            for (int i = 0; i < nbSegments; ++i) {
+            for (unsigned int i = 0; i < nbSegments; ++i) {
                 float angle = glm::radians(float(i)/float(nbSegments) * 360.f);
 
                 vertices.push_back(std::cos(angle) * radius);
@@ -38,3 +41,5 @@ namespace GLEngine {
     };
 
 }
+
+#endif

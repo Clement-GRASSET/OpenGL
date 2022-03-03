@@ -1,3 +1,6 @@
+#ifndef DISC_HPP
+#define DISC_HPP
+
 #include <cmath>
 
 #include "mesh.hpp"
@@ -17,7 +20,7 @@ namespace GLEngine {
             vertices.push_back(0.f);
             vertices.push_back(0.f);
 
-            for (int i = 0; i < nbSegments; ++i) {
+            for (unsigned int i = 0; i < nbSegments; ++i) {
                 float angle = glm::radians(float(i)/float(nbSegments) * 360.f);
 
                 vertices.push_back(std::cos(angle) * radius);
@@ -37,3 +40,5 @@ namespace GLEngine {
     };
 
 }
+
+#endif

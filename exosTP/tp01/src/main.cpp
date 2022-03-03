@@ -1,15 +1,17 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <vector>
-#include <glengine/shader.hpp>
-//#include <glengine/mesh.hpp>
+#include <string>
 #include <glengine/square.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "glengine/disc.hpp"
 #include "glengine/terrain.hpp"
+#include "glengine/scene.hpp"
+#include "glengine/renderer.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 //#include "tp01/config.hpp"
 
 using namespace GLEngine;
@@ -54,25 +56,50 @@ int main() {
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Pour passer en wireframe
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Pour passer en wireframe
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
 
-    std::vector<Mesh*> meshes;
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO & io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
-    meshes.push_back(new Square());
-    meshes.at(0)->setPosition(glm::vec3(0.f, 1.f, 0.f));
-    meshes.at(0)->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Scene scene;
+    Renderer renderer;
 
-    meshes.push_back(new Terrain());
-    meshes.at(1)->setPosition(glm::vec3(0.f, 0.f, 0.f));
-    meshes.at(1)->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Mesh * square = new Square();
+    //scene.addMesh(square);
+    square->setPosition(glm::vec3(0.f, 1.f, 0.f));
+    square->setScale(glm::vec3(0.5f, 5.f, 0.5f));
 
-    meshes.push_back(new Disk());
-    meshes.at(2)->setPosition(glm::vec3(0.f, 0.f, 0.f));
-    meshes.at(2)->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Mesh * terrain = new Terrain();
+    //scene.addMesh(terrain);
+    terrain->setPosition(glm::vec3(0.f, 0.f, 0.f));
+    terrain->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+
+    Mesh * disk = new Disk;
+    //scene.addMesh(disk);
+    disk->setPosition(glm::vec3(0.f, 0.f, 0.f));
+    disk->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+
+    Mesh * bunny = Mesh::load("C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/meshes/bunny.obj");
+    scene.addMesh(bunny);
+    bunny->setPosition(glm::vec3(1.8f, 0.1f, 0));
+    bunny->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+
+    //Mesh * dragon_small = Mesh::load("C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/meshes/dragon2_small.obj");
+    //scene.addMesh(dragon_small);
+    //dragon_small->setScale(glm::vec3(2.f, 0.5f, 2.f));
+
+    Mesh * dragon_smooth = Mesh::load("C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/meshes/dragon2_smooth.obj");
+    scene.addMesh(dragon_smooth);
+    dragon_smooth->setPosition(glm::vec3(0.f, -0.5f, 0.f));
+    //dragon_smooth->setScale(glm::vec3(2.f, 2.f, 2.f));
 
     double start = glfwGetTime();
-    float rotation = 0;
     double timeBeforeRefresh = 0;
     while(!glfwWindowShouldClose(window))
     {
@@ -88,27 +115,49 @@ int main() {
             timeBeforeRefresh = 0.5;
         }
 
-        rotation += float(frameTime*100.0f);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
-        glm::mat4 view = glm::mat4(1.0f);
-        // note that we're translating the scene in the reverse direction of where we want to move
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        view = glm::rotate(view, glm::radians(30.f), glm::vec3(1.0f, 0.0f, 0.0f));
-        view = glm::rotate(view, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.f), float(w)/float(h), 0.1f, 100.0f);
+        scene.update(frameTime);
+        renderer.setScreenSize(w, h);
+        renderer.render(&scene);
 
-        // Draw
-        glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ImGui::SetNextWindowSize(ImVec2(300.0f, float(h)));
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        if (ImGui::Begin("Window", nullptr, ImGuiWindowFlags_NoResize)) {
 
-        for (size_t i = 0; i < meshes.size(); i++) {
-            meshes.at(i)->render(view, projection);
-        }
+            if (ImGui::BeginTabBar("Tabs")) {
+
+                if (ImGui::BeginTabItem("Scene")) {
+                    ImGui::TextColored(ImVec4(1,1,0,1), "Objets");
+                    ImGui::BeginChild("Scrolling", ImVec2(100, 100));
+                    for (long long unsigned int i = 0; i < scene.getMeshes().size(); ++i) {
+                        //Mesh* m = scene.getMeshes().at(i);
+                        std::string name = "Mesh " + std::to_string(i);
+                        ImGui::Text(name.c_str());
+                    }
+                    ImGui::EndChild();
+                } //ImGui::EndTabItem();
+
+                if (ImGui::BeginTabItem("Parametres")) {
+                    ImGui::ColorEdit4("Couleur de fond", renderer.getBackgroundColor());
+                } ImGui::EndTabItem();
+
+            } ImGui::EndTabBar();
+
+        } ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
 
