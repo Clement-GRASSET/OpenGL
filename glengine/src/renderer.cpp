@@ -3,6 +3,7 @@
 namespace GLEngine {
 
     Renderer::Renderer()
+    : width(1), height(1)
     {
         backgroundColor = new float[4];
         backgroundColor[0] = 0.3f;
@@ -14,6 +15,12 @@ namespace GLEngine {
                 "C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/shaders/scale.vert",
                 "C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/shaders/scale.frag"
         );
+
+        renderOutline = true;
+
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Pour passer en wireframe
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST);
     }
 
     Renderer::~Renderer()
@@ -24,11 +31,14 @@ namespace GLEngine {
 
     void Renderer::render(Scene *scene) const
     {
+        Camera* camera = scene->getCamera();
+
         glm::mat4 view = glm::mat4(1.0f);
         // note that we're translating the scene in the reverse direction of where we want to move
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        view = glm::rotate(view, glm::radians(scene->getCamera()->getRotation()[0]), glm::vec3(1.0f, 0.0f, 0.0f));
-        view = glm::rotate(view, glm::radians(scene->getCamera()->getRotation()[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::rotate(view, glm::radians(scene->getCamera()->getRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, glm::radians(scene->getCamera()->getRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::rotate(view, glm::radians(scene->getCamera()->getRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
+        view = glm::translate(view, -camera->getPosition());
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.f), float(width)/float(height), 0.1f, 100.0f);
 
@@ -43,17 +53,23 @@ namespace GLEngine {
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
             glStencilMask(0xFF);
 
+            m->getShader()->use();
+            m->getShader()->setVec3("viewPos", camera->getPosition());
+            m->getShader()->setInt("width", int(width));
+            m->getShader()->setInt("height", int(height));
             m->render(view, projection, m->getShader());
 
-            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            glStencilMask(0x00);
-            glDisable(GL_DEPTH_TEST);
+            if (renderOutline) {
+                glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+                glStencilMask(0x00);
+                glDisable(GL_DEPTH_TEST);
 
-            m->render(view, projection, scaleShader);
+                m->render(view, projection, scaleShader);
 
-            glStencilMask(0xFF);
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glEnable(GL_DEPTH_TEST);
+                glStencilMask(0xFF);
+                glStencilFunc(GL_ALWAYS, 1, 0xFF);
+                glEnable(GL_DEPTH_TEST);
+            }
         }
     }
 

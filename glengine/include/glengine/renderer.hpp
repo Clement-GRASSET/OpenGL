@@ -11,6 +11,7 @@ namespace GLEngine {
         Shader* scaleShader;
         unsigned int width, height;
         float* backgroundColor;
+        bool renderOutline;
 
     public:
         Renderer();

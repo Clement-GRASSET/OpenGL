@@ -35,7 +35,9 @@ namespace GLEngine {
 
             setVertices(vertices);
             setIndices(indices);
-            debug();
+            computeNormals();
+            generateBuffers();
+            //debug();
         }
 
     };

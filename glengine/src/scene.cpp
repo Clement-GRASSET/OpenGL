@@ -2,12 +2,15 @@
 
 namespace GLEngine {
 
-    Scene::Scene() {
+    Scene::Scene()
+    : camera(nullptr)
+    {
         camera = new Camera();
+        camera->setPosition(glm::vec3(0, 0, 3));
     }
 
     void Scene::update(double frameTime) {
-        camera->setRotation(camera->getRotation() + glm::vec3(0.f, frameTime*100, 0.f));
+
     }
 
 }

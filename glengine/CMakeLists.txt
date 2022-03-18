@@ -20,6 +20,8 @@ set(SRC
 	${SRC_DIR}/mesh.cpp
 	${SRC_DIR}/scene.cpp
 	${SRC_DIR}/renderer.cpp
+	${SRC_DIR}/window.cpp
+	${SRC_DIR}/camera.cpp
 )
 
 set(HEADER

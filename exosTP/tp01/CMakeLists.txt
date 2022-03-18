@@ -16,6 +16,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include BEFORE)
 
 set(SRC
 	${SRC_DIR}/main.cpp
+	${SRC_DIR}/customScene.cpp
 )
 
 

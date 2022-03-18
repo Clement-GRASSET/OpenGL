@@ -9,15 +9,16 @@ namespace GLEngine {
     class Mesh {
 
     private:
-        std::vector<float> vertices;
-        std::vector<unsigned int> indices;
         std::vector<float> normals;
         Shader * shader;
-        unsigned int VAO, VBO, EBO;
         glm::vec3 position, scale;
 
+    protected:
+        unsigned int VAO, VBO, EBO;
+        std::vector<float> vertices;
+        std::vector<unsigned int> indices;
         void computeNormals();
-        void generateBuffers();
+        virtual void generateBuffers();
 
     public:
         Mesh();

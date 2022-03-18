@@ -25,21 +25,23 @@ namespace GLEngine {
     }
 
     void Mesh::render(glm::mat4 &view, glm::mat4 &projection, Shader* _shader) const {
-        _shader->setVec3("viewPos", glm::vec3(1.f, 0.f, 0.f));
+        //_shader->setVec3("viewPos", glm::vec3(1.f, 0.f, 0.f));
+
+        //_shader->setInt("ourTexture", 0);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, scale);
         model = glm::translate(model, position);
         //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-        _shader->setMat4fv("model", model);
+        _shader->use();
+        _shader->setMat4fv("model", model);;
         _shader->setMat4fv("view", view);
         _shader->setMat4fv("projection", projection);
-        _shader->use();
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        //glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBindVertexArray(VAO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     }
 
@@ -53,14 +55,14 @@ namespace GLEngine {
 
     void Mesh::debug() const {
         std::cout << "Vertices :" << std::endl;
-        for (int i = 0; i < vertices.size(); ++i) {
+        for (size_t i = 0; i < vertices.size(); ++i) {
             std::cout << vertices[i] << ", ";
             if (i%3 == 2)
                 std::cout << std::endl;
         }
 
         std::cout << "Indices :" << std::endl;
-        for (int i = 0; i < indices.size(); ++i) {
+        for (size_t i = 0; i < indices.size(); ++i) {
             std::cout << indices[i] << ", ";
             if (i%3 == 2)
                 std::cout << std::endl;
@@ -99,7 +101,7 @@ namespace GLEngine {
                 }
             }
 
-        } catch (std::ifstream::failure e) {
+        } catch (std::ifstream::failure& e) {
             std::cerr << "Impossible de charger le mesh " << path << std::endl;
             return m;
         }
@@ -112,18 +114,18 @@ namespace GLEngine {
     }
 
     void Mesh::computeNormals() {
-        for (int i = 0; i < vertices.size(); ++i) {
+        for (size_t i = 0; i < vertices.size(); ++i) {
             normals.push_back(0);
         }
 
-        for (int i = 0; i < indices.size(); i = i+3) {
+        for (size_t i = 0; i < indices.size(); i = i+3) {
             unsigned int i1 = indices[i], i2 = indices[i+1], i3 = indices[i+2];
             //std::cout << i1 << ", " << i2 << ", " << i3 << std::endl;
             glm::vec3 v1, v2, v3;
             v1 = glm::vec3(vertices[i1*3], vertices[i1*3+1], vertices[i1*3+2]);
             v2 = glm::vec3(vertices[i2*3], vertices[i2*3+1], vertices[i2*3+2]);
             v3 = glm::vec3(vertices[i3*3], vertices[i3*3+1], vertices[i3*3+2]);
-            glm::vec3 normal = glm::cross(v3-v1, v2-v1);
+            glm::vec3 normal = glm::cross(v2-v1, v3-v1);
             normals[i1*3] += normal[0];
             normals[i1*3+1] += normal[1];
             normals[i1*3+2] += normal[2];
@@ -135,7 +137,7 @@ namespace GLEngine {
             normals[i3*3+2] += normal[2];
         }
 
-        for (int i = 0; i < normals.size(); i = i+3) {
+        for (size_t i = 0; i < normals.size(); i = i+3) {
             glm::vec3 normal = glm::vec3(normals[i], normals[i+1], normals[i+2]);
             normal = glm::normalize(normal);
             normals[i] = normal[0];

@@ -16,7 +16,7 @@ namespace GLEngine {
     public:
         Scene();
 
-        void update(double frameTime);
+        virtual void update(double frameTime);
 
         inline void addMesh(Mesh* m) {meshes.push_back(m);}
 
