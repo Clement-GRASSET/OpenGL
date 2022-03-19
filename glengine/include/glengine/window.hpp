@@ -9,16 +9,17 @@ namespace GLEngine {
     class Window {
 
     private:
-        GLFWwindow* window;
+        GLFWwindow* win;
 
         static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
     public:
         Window(int width, int height);
         ~Window();
-        GLFWwindow* getGFLWwindow() {return window;};
+        GLFWwindow* getGFLWwindow() {return win;};
         //void setSize(unsigned int _width, unsigned int _height) {width = _width; height = _height;};
         bool isPressingKey(int key);
+        bool isPressingMouseButton(int mouseButton);
 
     };
 

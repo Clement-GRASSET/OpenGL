@@ -6,6 +6,7 @@
 #include <GL/gl.h>
 #include <iostream>
 #include <stdexcept>
+#include <glengine/config.hpp>
 
 /**
  * \namespace GLEngine

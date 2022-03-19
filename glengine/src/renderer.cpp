@@ -1,9 +1,11 @@
-#include "glengine/renderer.hpp"
+#include <glengine/renderer.hpp>
+
+extern const char* _resources_directory;
 
 namespace GLEngine {
 
     Renderer::Renderer()
-    : width(1), height(1)
+    : width(1), height(1), renderOutline(true), framebuffer(0), screenVAO(0)
     {
         backgroundColor = new float[4];
         backgroundColor[0] = 0.3f;
@@ -12,11 +14,34 @@ namespace GLEngine {
         backgroundColor[3] = 1.f;
 
         scaleShader = new Shader(
-                "C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/shaders/scale.vert",
-                "C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/shaders/scale.frag"
+                std::string(_resources_directory).append("shaders/scale.vert").c_str(),
+                std::string(_resources_directory).append("shaders/scale.frag").c_str()
         );
 
-        renderOutline = true;
+        glGenFramebuffers(1, &framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+        // generate texture
+        unsigned int textureColorbuffer;
+        glGenTextures(1, &textureColorbuffer);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // attach it to currently bound framebuffer object
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+        unsigned int rbo;
+        glGenRenderbuffers(1, &rbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Pour passer en wireframe
         glEnable(GL_DEPTH_TEST);
@@ -27,6 +52,7 @@ namespace GLEngine {
     {
         delete [] backgroundColor;
         delete scaleShader;
+        glDeleteFramebuffers(1, &framebuffer);
     }
 
     void Renderer::render(Scene *scene) const
@@ -43,10 +69,11 @@ namespace GLEngine {
         projection = glm::perspective(glm::radians(45.f), float(width)/float(height), 0.1f, 100.0f);
 
         // Draw
-        glEnable(GL_DEPTH_TEST);
+        //glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
 
         for (auto & m : scene->getMeshes()) {
 
@@ -71,6 +98,10 @@ namespace GLEngine {
                 glEnable(GL_DEPTH_TEST);
             }
         }
+
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+        //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        //glClear(GL_COLOR_BUFFER_BIT);
     }
 
 }

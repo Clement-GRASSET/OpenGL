@@ -1,6 +1,9 @@
 #include <glengine/window.hpp>
 #include <iostream>
 #include <string>
+#include "include/imgui/imgui.h"
+#include "include/imgui/imgui_impl_glfw.h"
+#include "include/imgui/imgui_impl_opengl3.h"
 
 namespace GLEngine {
 
@@ -10,7 +13,7 @@ namespace GLEngine {
     }
 
     Window::Window(int width, int height)
-    : window(nullptr)
+    : win(nullptr)
     {
         // ça part de là !
         glfwInit();
@@ -22,14 +25,14 @@ namespace GLEngine {
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-        window = glfwCreateWindow(int(width), int(height), "TP1", NULL, NULL);
-        if (window == NULL)
+        win = glfwCreateWindow(int(width), int(height), "TP1", NULL, NULL);
+        if (win == NULL)
         {
             std::cout << "Failed to create GLFW window" << std::endl;
             glfwTerminate();
             throw std::runtime_error("Failed to create GLFW window");
         }
-        glfwMakeContextCurrent(window);
+        glfwMakeContextCurrent(win);
         glfwSwapInterval(0);
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -40,24 +43,31 @@ namespace GLEngine {
 
         glViewport(0, 0, int(width), int(height));
 
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glfwSetFramebufferSizeCallback(win, framebuffer_size_callback);
 
-        //while(!glfwWindowShouldClose(window)) {
-        //    glfwGetWindowSize(window, &width, &height);
-            //if (refreshCallback != nullptr) {
-            //    (*refreshCallback)();
-            //}
-        //}
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO & io = ImGui::GetIO(); (void)io;
+        ImGui::StyleColorsDark();
+        ImGui_ImplGlfw_InitForOpenGL(win, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
     }
 
     Window::~Window()
     {
         glfwTerminate();
-        delete window;
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+        free(win);
     }
 
     bool Window::isPressingKey(int key) {
-        return glfwGetKey(window, key) == GLFW_PRESS;
+        return glfwGetKey(win, key) == GLFW_PRESS;
+    }
+
+    bool Window::isPressingMouseButton(int mouseButton) {
+        return glfwGetMouseButton(win, mouseButton) == GLFW_PRESS;
     }
 
 }

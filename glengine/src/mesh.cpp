@@ -1,5 +1,7 @@
 #include "glengine/mesh.hpp"
-#include "glengine/config.hpp"
+//#include <glengine/glengine.hpp>
+
+extern const char* _resources_directory;
 
 namespace GLEngine {
 

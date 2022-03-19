@@ -2,7 +2,7 @@
 #define MESH_HPP
 
 #include <vector>
-#include "shader.hpp"
+#include <glengine/shader.hpp>
 
 namespace GLEngine {
 

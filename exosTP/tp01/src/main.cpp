@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glengine/square.hpp>
 #include "glengine/disc.hpp"
 #include "glengine/terrain.hpp"
@@ -11,10 +10,12 @@
 #include "glengine/scene.hpp"
 #include "glengine/renderer.hpp"
 #include "stbimage/stb_image.h"
-#include "glengine/gui/gui.hpp"
 #include "glengine/window.hpp"
 #include "tp01/customScene.hpp"
-//#include "tp01/config.hpp"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 using namespace GLEngine;
 
@@ -42,10 +43,9 @@ unsigned int loadTexture(const char* path, GLint colors)
     }
     else
     {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture : " << path << std::endl;
     }
     stbi_image_free(data);
-    std::cout << "image ok" << std::endl;
     return texture;
 }
 
@@ -54,7 +54,6 @@ int main() {
     Window window(1280, 720);
     CustomScene scene;
     Renderer renderer;
-    GUI gui(window.getGFLWwindow());
 
     /*
     Mesh * square = new Square();
@@ -78,12 +77,12 @@ int main() {
     cube->setPosition(glm::vec3(0.f, 0.f, 0.f));
     //cube->setScale(glm::vec3(2.f, 2.f, 2.f));
 
-    unsigned int box2 = loadTexture("C:\\Users\\Clement\\Documents\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2.png", GL_RGB);
-    unsigned int box2_diffus = loadTexture("C:\\Users\\Clement\\Documents\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-diffus.png", GL_RGB);
-    unsigned int box2_diffus_mask = loadTexture("C:\\Users\\Clement\\Documents\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-diffus-mask.png", GL_RGBA);
-    unsigned int box2_specular = loadTexture("C:\\Users\\Clement\\Documents\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular.png", GL_RGBA);
-    unsigned int box2_specular_albedo = loadTexture("C:\\Users\\Clement\\Documents\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular-albedo.png", GL_RGBA);
-    unsigned int box2_specular_mask = loadTexture("C:\\Users\\Clement\\Documents\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular-mask.png", GL_RGBA);
+    unsigned int box2 = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2.jpg", GL_RGB);
+    unsigned int box2_diffus = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-diffus.png", GL_RGB);
+    unsigned int box2_diffus_mask = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-diffus-mask.png", GL_RGBA);
+    unsigned int box2_specular = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular.png", GL_RGBA);
+    unsigned int box2_specular_albedo = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular-albedo.png", GL_RGBA);
+    unsigned int box2_specular_mask = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular-mask.png", GL_RGBA);
 
     cube->getShader()->use();
     glActiveTexture(GL_TEXTURE0);
@@ -110,7 +109,7 @@ int main() {
     //bunny->setPosition(glm::vec3(1.8f, 0.1f, 0));
     //bunny->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
 
-    Mesh * dragon_small = Mesh::load("C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/meshes/dragon2_small.obj");
+    Mesh * dragon_small = Mesh::load("E:/IUT/Projets/OpenGL/glengine/resources/meshes/dragon2_small.obj");
     scene.addMesh(dragon_small);
     dragon_small->setScale(glm::vec3(2.f, 2.f, 2.f));
     dragon_small->setPosition(glm::vec3(3.f, 0, 0));
@@ -146,20 +145,39 @@ int main() {
         mouseX_old = mouseX;
         mouseY_old = mouseY;
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
         scene.update(frameTime);
         float camX = 0, camY = 0, camZ = 0;
-        float camSpeed = 2;
+        float camSpeed = 5;
+        float mouseSens = 0.2;
 
-        if (window.isPressingKey(GLFW_KEY_E)) {
+        glm::vec3 forward = scene.getCamera()->getForwardVector();
+        glm::vec3 right = scene.getCamera()->getRightVector();
+        glm::vec3 up = scene.getCamera()->getUpVector();
+
+        if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT) || window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
             glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(mouseSpeedY*0.1, mouseSpeedX*0.1, 0));
+
+            if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT) && window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
+                scene.getCamera()->setPosition(scene.getCamera()->getPosition()
+                    + glm::vec3(up.x*mouseSpeedY*-0.001*camSpeed, up.y*mouseSpeedY*-0.001*camSpeed, up.z*mouseSpeedY*-0.001*camSpeed)
+                    + glm::vec3(right.x*mouseSpeedX*0.001*camSpeed, right.y*mouseSpeedX*0.001*camSpeed, right.z*mouseSpeedX*0.001*camSpeed)
+                );
+            } else if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
+                scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(mouseSpeedY*mouseSens, mouseSpeedX*mouseSens, 0));
+            } else if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
+                scene.getCamera()->setPosition(scene.getCamera()->getPosition()
+                   + glm::vec3(forward.x*mouseSpeedY*-0.001*camSpeed, forward.y*mouseSpeedY*-0.001*camSpeed, forward.z*mouseSpeedY*-0.001*camSpeed)
+                );
+                scene.getCamera()->setRotation(scene.getCamera()->getRotation()
+                   + glm::vec3(0, mouseSpeedX*mouseSens, 0)
+                );
+            }
+
         } else {
             glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
+
+
 
         if (window.isPressingKey(GLFW_KEY_UP))
             scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(1*frameTime*-100,0,0));
@@ -178,14 +196,11 @@ int main() {
             camX += -1;
         if (window.isPressingKey(GLFW_KEY_D))
             camX += 1;
-        if (window.isPressingKey(GLFW_KEY_LEFT_SHIFT))
+        if (window.isPressingKey(GLFW_KEY_Q))
             camY += -1;
-        if (window.isPressingKey(GLFW_KEY_SPACE))
+        if (window.isPressingKey(GLFW_KEY_E))
             camY += 1;
 
-        glm::vec3 forward = scene.getCamera()->getForwardVector();
-        glm::vec3 right = scene.getCamera()->getRightVector();
-        glm::vec3 up = scene.getCamera()->getUpVector();
         scene.getCamera()->setPosition(
             scene.getCamera()->getPosition()
             + glm::vec3(forward.x*camZ*frameTime*camSpeed,forward.y*camZ*frameTime*camSpeed,forward.z*camZ*frameTime*camSpeed)
@@ -195,6 +210,10 @@ int main() {
 
         renderer.setScreenSize(width, height);
         renderer.render(&scene);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
         ImGui::SetNextWindowSize(ImVec2(300.0f, float(height)));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -228,8 +247,8 @@ int main() {
                 ImGui::EndTabBar();
             }
 
-            ImGui::End();
         }
+        ImGui::End();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
