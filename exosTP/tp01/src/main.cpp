@@ -86,6 +86,13 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        glfwGetWindowSize(window.getGFLWwindow(), &width, &height);
+        glfwGetCursorPos(window.getGFLWwindow(), &mouseX, &mouseY);
+        mouseSpeedX = mouseX - mouseX_old;
+        mouseSpeedY = mouseY - mouseY_old;
+        mouseX_old = mouseX;
+        mouseY_old = mouseY;
+
         float windowWidth = 400;
         float windowHeight = float(height);
 
@@ -288,13 +295,6 @@ int main() {
         ImGui::End();
 
         ImGuiIO& io = ImGui::GetIO();
-
-        glfwGetWindowSize(window.getGFLWwindow(), &width, &height);
-        glfwGetCursorPos(window.getGFLWwindow(), &mouseX, &mouseY);
-        mouseSpeedX = mouseX - mouseX_old;
-        mouseSpeedY = mouseY - mouseY_old;
-        mouseX_old = mouseX;
-        mouseY_old = mouseY;
 
         scene.update(frameTime);
         float camX = 0, camY = 0, camZ = 0;
