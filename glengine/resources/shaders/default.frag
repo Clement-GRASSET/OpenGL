@@ -65,6 +65,8 @@ void main()
     // BloomColor = (brightness > 0.5f) ? FragColor : vec4(0,0,0,1);
 
     BloomColor = vec4(vec3(
-        pow(brightness, 4)
+        pow(max(
+            brightness - 0.5
+        ,0), 3)
     ),1) * FragColor;
 }

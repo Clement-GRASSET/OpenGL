@@ -4,8 +4,13 @@ in vec2 UV;
 uniform sampler2D colorTexture;
 uniform sampler2D bloomTexture;
 
+uniform float gamma;
+uniform float exposition;
+uniform float bloom;
+
 uniform int width, height;
 
+/*
 float offset_x = 1.f / width;
 float offset_y = 1.f / height;
 
@@ -28,18 +33,19 @@ vec3 makebloom() {
     color /= 9;
 
     return color;
-}
+}*/
 
 void main() {
 
-    vec3 color = vec3(texture(colorTexture, UV));
-    vec3 bloom = vec3(texture(bloomTexture, UV));
+    vec3 screenColor = vec3(texture(colorTexture, UV));
+    vec3 bloomColor = vec3(texture(bloomTexture, UV));
 
-    vec3 mix = color + bloom;
+    vec3 mix = screenColor + bloomColor * bloom;
 
-    vec3 mapped = mix / (mix + vec3(1.0));
+    //vec3 mapped = mix / (mix + vec3(1.f));
+    vec3 mapped = vec3(1.0) - exp(-mix * exposition);
 
-    vec3 gamma_correction = pow(mapped, vec3(1.f/2.2f));
+    vec3 gamma_correction = pow(mapped, vec3(1.f/gamma));
 
     gl_FragColor = vec4(gamma_correction, 1);
 }

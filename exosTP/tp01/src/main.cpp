@@ -120,26 +120,25 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, box2_specular_mask);
     cube->getShader()->setInt("box2_specular_mask", 5);
 
-    Mesh * bunny = Mesh::load(std::string(_resources_directory).append("meshes/bunny.obj").c_str());
+    /*Mesh * bunny = Mesh::load(std::string(_resources_directory).append("meshes/bunny.obj").c_str());
     scene.addMesh(bunny);
     bunny->setPosition(glm::vec3(1.8f, 0.1f, 0));
-    bunny->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    bunny->setScale(glm::vec3(0.5f, 0.5f, 0.5f));*/
 
     Mesh * dragon_small = Mesh::load(std::string(_resources_directory).append("meshes/dragon2_small.obj").c_str());
     scene.addMesh(dragon_small);
     dragon_small->setScale(glm::vec3(2.f, 2.f, 2.f));
     dragon_small->setPosition(glm::vec3(3.f, 0, 0));
 
-    Mesh * dragon_smooth = Mesh::load(std::string(_resources_directory).append("meshes/dragon2_smooth.obj").c_str());
+    /*Mesh * dragon_smooth = Mesh::load(std::string(_resources_directory).append("meshes/dragon2_smooth.obj").c_str());
     scene.addMesh(dragon_smooth);
     dragon_smooth->setPosition(glm::vec3(5.f, -0.5f, 0.f));
-    dragon_smooth->setScale(glm::vec3(2.f, 2.f, 2.f));
+    dragon_smooth->setScale(glm::vec3(2.f, 2.f, 2.f));*/
 
     int width, height;
     double mouseX = 0, mouseY = 0, mouseX_old = 0, mouseY_old = 0, mouseSpeedX = 0, mouseSpeedY = 0;
 
     double start = glfwGetTime();
-    double timeBeforeRefresh = 0;
     while(!glfwWindowShouldClose(window.getGFLWwindow()))
     {
         // FPS
@@ -147,12 +146,65 @@ int main() {
         double frameTime = end - start;
         start = (float)glfwGetTime();
 
-        timeBeforeRefresh -= frameTime;
-        if (timeBeforeRefresh <= 0) {
-            std::string title = "FPS : " + std::to_string(int(1.f/frameTime)) + ", frame time : " + std::to_string(frameTime) + "ms";
-            glfwSetWindowTitle(window.getGFLWwindow(), title.c_str());
-            timeBeforeRefresh = 0.2;
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::SetNextWindowSize(ImVec2(400.0f, float(height)));
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        if (ImGui::Begin("Window", nullptr, ImGuiWindowFlags_NoResize)) {
+
+            ImGui::TextColored(ImVec4(0,1,0,1), std::string("FPS : " + std::to_string(int(1.f/frameTime))).c_str());
+            ImGui::TextColored(ImVec4(0,1,0,1), std::string("Frame Time : " + std::to_string(frameTime) + "ms").c_str());
+
+            if (ImGui::BeginTabBar("Tabs")) {
+
+                if (ImGui::BeginTabItem("Scene")) {
+
+                    if (ImGui::Button("Charger un objet")) {
+
+                    }
+
+                    ImGui::TextColored(ImVec4(1,1,0,1), "Objets");
+                    ImGui::BeginChild("Scrolling", ImVec2(100, 100));
+                    for (long long unsigned int i = 0; i < scene.getMeshes().size(); ++i) {
+                        //Mesh* m = scene.getMeshes().at(i);
+                        std::string name = "Mesh " + std::to_string(i);
+                        ImGui::Text(name.c_str());
+
+                    }
+                    ImGui::EndChild();
+                    ImGui::EndTabItem();
+                }
+
+                if (ImGui::BeginTabItem("Paramètres")) {
+                    float backgroundColor[4] = {
+                            renderer.getBackgroundColor()[0],
+                            renderer.getBackgroundColor()[1],
+                            renderer.getBackgroundColor()[2],
+                            renderer.getBackgroundColor()[3]
+                    };
+                    ImGui::ColorEdit4("Couleur de fond", backgroundColor);
+                    renderer.setBackgroundColor(glm::vec4(backgroundColor[0],backgroundColor[1],backgroundColor[2],backgroundColor[3]));
+                    float gamma = renderer.getGamma();
+                    ImGui::DragFloat("Gamma", &gamma, 0.1,1,5);
+                    renderer.setGamma(gamma);
+                    float exposition = renderer.getExposition();
+                    ImGui::DragFloat("Exposition", &exposition, 0.1,0,5);
+                    renderer.setExposition(exposition);
+                    float bloom = renderer.getBloom();
+                    ImGui::DragFloat("Bloom", &bloom, 0.1,0,5);
+                    renderer.setBloom(bloom);
+                    ImGui::EndTabItem();
+                }
+
+                ImGui::EndTabBar();
+            }
+
         }
+        ImGui::End();
+
+        ImGuiIO& io = ImGui::GetIO();
 
         glfwGetWindowSize(window.getGFLWwindow(), &width, &height);
         glfwGetCursorPos(window.getGFLWwindow(), &mouseX, &mouseY);
@@ -170,59 +222,74 @@ int main() {
         glm::vec3 right = scene.getCamera()->getRightVector();
         glm::vec3 up = scene.getCamera()->getUpVector();
 
-        if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT) || window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
-            glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        if (!io.WantCaptureMouse)
+        {
+            if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT) ||
+                window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
+                glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-            if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT) && window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
-                scene.getCamera()->setPosition(scene.getCamera()->getPosition()
-                    + glm::vec3(up.x*mouseSpeedY*-0.001*camSpeed, up.y*mouseSpeedY*-0.001*camSpeed, up.z*mouseSpeedY*-0.001*camSpeed)
-                    + glm::vec3(right.x*mouseSpeedX*0.001*camSpeed, right.y*mouseSpeedX*0.001*camSpeed, right.z*mouseSpeedX*0.001*camSpeed)
-                );
-            } else if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
-                scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(mouseSpeedY*mouseSens, mouseSpeedX*mouseSens, 0));
-            } else if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
-                scene.getCamera()->setPosition(scene.getCamera()->getPosition()
-                   + glm::vec3(forward.x*mouseSpeedY*-0.001*camSpeed, forward.y*mouseSpeedY*-0.001*camSpeed, forward.z*mouseSpeedY*-0.001*camSpeed)
-                );
-                scene.getCamera()->setRotation(scene.getCamera()->getRotation()
-                   + glm::vec3(0, mouseSpeedX*mouseSens, 0)
-                );
+                if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT) &&
+                    window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
+                    scene.getCamera()->setPosition(scene.getCamera()->getPosition()
+                                                   + glm::vec3(up.x * mouseSpeedY * -0.001 * camSpeed,
+                                                               up.y * mouseSpeedY * -0.001 * camSpeed,
+                                                               up.z * mouseSpeedY * -0.001 * camSpeed)
+                                                   + glm::vec3(right.x * mouseSpeedX * 0.001 * camSpeed,
+                                                               right.y * mouseSpeedX * 0.001 * camSpeed,
+                                                               right.z * mouseSpeedX * 0.001 * camSpeed)
+                    );
+                } else if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
+                    scene.getCamera()->setRotation(scene.getCamera()->getRotation() +
+                                                   glm::vec3(mouseSpeedY * mouseSens, mouseSpeedX * mouseSens, 0));
+                } else if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
+                    scene.getCamera()->setPosition(scene.getCamera()->getPosition()
+                                                   + glm::vec3(forward.x * mouseSpeedY * -0.001 * camSpeed,
+                                                               forward.y * mouseSpeedY * -0.001 * camSpeed,
+                                                               forward.z * mouseSpeedY * -0.001 * camSpeed)
+                    );
+                    scene.getCamera()->setRotation(scene.getCamera()->getRotation()
+                                                   + glm::vec3(0, mouseSpeedX * mouseSens, 0)
+                    );
+                }
+
+            } else {
+                glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             }
 
-        } else {
-            glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            if (window.isPressingKey(GLFW_KEY_UP))
+                scene.getCamera()->setRotation(
+                        scene.getCamera()->getRotation() + glm::vec3(1 * frameTime * -100, 0, 0));
+            if (window.isPressingKey(GLFW_KEY_DOWN))
+                scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(1 * frameTime * 100, 0, 0));
+            if (window.isPressingKey(GLFW_KEY_LEFT))
+                scene.getCamera()->setRotation(
+                        scene.getCamera()->getRotation() + glm::vec3(0, 1 * frameTime * -100, 0));
+            if (window.isPressingKey(GLFW_KEY_RIGHT))
+                scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(0, 1 * frameTime * 100, 0));
+
+            if (window.isPressingKey(GLFW_KEY_W))
+                camZ += 1;
+            if (window.isPressingKey(GLFW_KEY_S))
+                camZ += -1;
+            if (window.isPressingKey(GLFW_KEY_A))
+                camX += -1;
+            if (window.isPressingKey(GLFW_KEY_D))
+                camX += 1;
+            if (window.isPressingKey(GLFW_KEY_Q))
+                camY += -1;
+            if (window.isPressingKey(GLFW_KEY_E))
+                camY += 1;
+
+            scene.getCamera()->setPosition(
+                    scene.getCamera()->getPosition()
+                    + glm::vec3(forward.x * camZ * frameTime * camSpeed, forward.y * camZ * frameTime * camSpeed,
+                                forward.z * camZ * frameTime * camSpeed)
+                    + glm::vec3(right.x * camX * frameTime * camSpeed, right.y * camX * frameTime * camSpeed,
+                                right.z * camX * frameTime * camSpeed)
+                    + glm::vec3(up.x * camY * frameTime * camSpeed, up.y * camY * frameTime * camSpeed,
+                                up.z * camY * frameTime * camSpeed)
+            );
         }
-
-
-
-        if (window.isPressingKey(GLFW_KEY_UP))
-            scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(1*frameTime*-100,0,0));
-        if (window.isPressingKey(GLFW_KEY_DOWN))
-            scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(1*frameTime*100,0,0));
-        if (window.isPressingKey(GLFW_KEY_LEFT))
-            scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(0,1*frameTime*-100,0));
-        if (window.isPressingKey(GLFW_KEY_RIGHT))
-            scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(0, 1*frameTime*100,0));
-
-        if (window.isPressingKey(GLFW_KEY_W))
-            camZ += 1;
-        if (window.isPressingKey(GLFW_KEY_S))
-            camZ += -1;
-        if (window.isPressingKey(GLFW_KEY_A))
-            camX += -1;
-        if (window.isPressingKey(GLFW_KEY_D))
-            camX += 1;
-        if (window.isPressingKey(GLFW_KEY_Q))
-            camY += -1;
-        if (window.isPressingKey(GLFW_KEY_E))
-            camY += 1;
-
-        scene.getCamera()->setPosition(
-            scene.getCamera()->getPosition()
-            + glm::vec3(forward.x*camZ*frameTime*camSpeed,forward.y*camZ*frameTime*camSpeed,forward.z*camZ*frameTime*camSpeed)
-            + glm::vec3(right.x*camX*frameTime*camSpeed,right.y*camX*frameTime*camSpeed,right.z*camX*frameTime*camSpeed)
-            + glm::vec3(up.x*camY*frameTime*camSpeed,up.y*camY*frameTime*camSpeed,up.z*camY*frameTime*camSpeed)
-        );
 
         cube->getShader()->use();
         glActiveTexture(GL_TEXTURE0);
@@ -246,45 +313,6 @@ int main() {
 
         renderer.setScreenSize(width, height);
         renderer.render(&scene);
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::SetNextWindowSize(ImVec2(300.0f, float(height)));
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        if (ImGui::Begin("Window", nullptr, ImGuiWindowFlags_NoResize)) {
-
-            if (ImGui::BeginTabBar("Tabs")) {
-
-                if (ImGui::BeginTabItem("Scene")) {
-
-                    if (ImGui::Button("Charger un objet")) {
-
-                    }
-
-                    ImGui::TextColored(ImVec4(1,1,0,1), "Objets");
-                    ImGui::BeginChild("Scrolling", ImVec2(100, 100));
-                    for (long long unsigned int i = 0; i < scene.getMeshes().size(); ++i) {
-                        //Mesh* m = scene.getMeshes().at(i);
-                        std::string name = "Mesh " + std::to_string(i);
-                        ImGui::Text(name.c_str());
-
-                    }
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-
-                if (ImGui::BeginTabItem("Paramètres")) {
-                    ImGui::ColorEdit4("Couleur de fond", renderer.getBackgroundColor());
-                    ImGui::EndTabItem();
-                }
-
-                ImGui::EndTabBar();
-            }
-
-        }
-        ImGui::End();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

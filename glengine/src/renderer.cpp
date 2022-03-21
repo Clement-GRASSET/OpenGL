@@ -5,14 +5,8 @@ extern const char* _resources_directory;
 namespace GLEngine {
 
     Renderer::Renderer()
-    : width(1), height(1), gamma(2.2f), renderOutline(true), framebuffer(0), textureColorBuffer(0), textureBloomBuffer(0), rbo(0), screenVAO(0), screenVBO(0), screenEBO(0)
+    : width(1), height(1), backgroundColor(glm::vec4(0.1,0.1,0.1,1.0)), gamma(2.2f), exposition(1.f), bloom(1.f), renderOutline(true), framebuffer(0), textureColorBuffer(0), textureBloomBuffer(0), rbo(0), screenVAO(0), screenVBO(0), screenEBO(0)
     {
-        backgroundColor = new float[4];
-        backgroundColor[0] = 0.5f;
-        backgroundColor[1] = 0.5f;
-        backgroundColor[2] = 0.5f;
-        backgroundColor[3] = 1.f;
-
         scaleShader = new Shader(
                 std::string(_resources_directory).append("shaders/scale.vert").c_str(),
                 std::string(_resources_directory).append("shaders/scale.frag").c_str()
@@ -34,7 +28,7 @@ namespace GLEngine {
         );
 
         generateScreenVAO();
-        setScreenSize(width, height);
+        generateBuffers();
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Pour passer en wireframe
         //glEnable(GL_DEPTH_TEST);
@@ -43,7 +37,6 @@ namespace GLEngine {
 
     Renderer::~Renderer()
     {
-        delete [] backgroundColor;
         delete scaleShader;
         delete screenShader;
         delete blurShader;
@@ -105,12 +98,14 @@ namespace GLEngine {
             }
         }
 
+
         bool horizontal = true, first_iteration = true;
-        unsigned int amount = 6;
+        unsigned int amount = 20;
         blurShader->use();
         for (unsigned int i = 0; i < amount; i++)
         {
             glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+            glViewport(0,0,width/4,height/4);
             blurShader->setInt("horizontal", horizontal);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(
@@ -123,6 +118,7 @@ namespace GLEngine {
                 first_iteration = false;
         }
 
+        glViewport(0,0,width,height);
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -136,6 +132,9 @@ namespace GLEngine {
         glBindTexture(GL_TEXTURE_2D, pingpongBuffer[!horizontal]);
         screenShader->setInt("bloomTexture", 1);
 
+        screenShader->setFloat("gamma", gamma);
+        screenShader->setFloat("exposition", exposition);
+        screenShader->setFloat("bloom", bloom);
         screenShader->setInt("width", width);
         screenShader->setInt("height", height);
         RenderQuad();
@@ -218,7 +217,7 @@ namespace GLEngine {
             glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
             glBindTexture(GL_TEXTURE_2D, pingpongBuffer[i]);
             glTexImage2D(
-                    GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL
+                    GL_TEXTURE_2D, 0, GL_RGBA16F, width/4, height/4, 0, GL_RGBA, GL_FLOAT, NULL
             );
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
