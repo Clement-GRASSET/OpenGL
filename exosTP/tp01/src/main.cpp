@@ -5,138 +5,74 @@
 #include <glm/glm.hpp>
 #include <glengine/square.hpp>
 #include "glengine/disc.hpp"
-#include "glengine/terrain.hpp"
 #include <glengine/cube.hpp>
+#include <glengine/texture.hpp>
 #include "glengine/scene.hpp"
 #include "glengine/renderer.hpp"
-#include "stbimage/stb_image.h"
 #include "glengine/window.hpp"
+#include "glengine/shaderManager.hpp"
 #include "tp01/customScene.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include <imgui/imfilebrowser.h>
 
 using namespace GLEngine;
 
 extern const char* _resources_directory;
-
-unsigned int loadTexture(const char* path)
-{
-    //glActiveTexture(GL_TEXTURE0);
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load and generate the texture
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        /*for (size_t i = 0; i < width*height*nrChannels; ++i) {
-            std::cout << (unsigned int)(data[i]) << ", ";
-        }*/
-        switch (nrChannels) {
-            case 3: {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-                break;
-            }
-            case 4: {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-                break;
-            }
-            default: {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-                break;
-            }
-        }
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture : " << path << std::endl;
-    }
-    stbi_image_free(data);
-    return texture;
-}
 
 int main() {
 
     Window window(1280, 720);
     CustomScene scene;
     Renderer renderer;
+    ShaderManager shaderManager;
 
-    /*
-    Mesh * square = new Square();
-    scene.addMesh(square);
-    square->setPosition(glm::vec3(1.f, 0.f, 0.f));
-    square->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
-
-    Mesh * terrain = new Terrain();
-    scene.addMesh(terrain);
-    terrain->setPosition(glm::vec3(0.f, 0.f, 0.f));
-    terrain->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
-
-    Mesh * disk = new Disk();
-    scene.addMesh(disk);
-    disk->setPosition(glm::vec3(0.f, 0.f, 0.f));
-    disk->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
-    */
+    Shader* nprShader = new Shader(
+            std::string(_resources_directory).append("shaders/default.vert").c_str(),
+            std::string(_resources_directory).append("shaders/nrp.frag").c_str()
+    );
+    shaderManager.addShader("NPR", nprShader);
+    Shader* textureShader = new Shader(
+            std::string(_resources_directory).append("shaders/default.vert").c_str(),
+            std::string(_resources_directory).append("shaders/texture.frag").c_str()
+    );
+    shaderManager.addShader("Texture", textureShader);
 
     Mesh * cube = new Cube();
     scene.addMesh(cube);
     cube->setPosition(glm::vec3(0.f, 0.f, 0.f));
     //cube->setScale(glm::vec3(2.f, 2.f, 2.f));
 
-    unsigned int box2 = loadTexture(std::string(_resources_directory).append("textures/box2/box2.jpg").c_str());
-    unsigned int box2_diffus = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus.png").c_str());
-    unsigned int box2_diffus_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus-mask.png").c_str());
-    unsigned int box2_specular = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular.png").c_str());
-    unsigned int box2_specular_albedo = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-albedo.png").c_str());
-    unsigned int box2_specular_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-mask.png").c_str());
-
-    cube->getShader()->use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, box2);
-    cube->getShader()->setInt("box2", 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, box2_diffus);
-    cube->getShader()->setInt("box2_diffus", 1);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, box2_diffus_mask);
-    cube->getShader()->setInt("box2_diffus_mask", 2);
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, box2_specular);
-    cube->getShader()->setInt("box2_specular", 3);
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, box2_specular_albedo);
-    cube->getShader()->setInt("box2_specular_albedo", 4);
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, box2_specular_mask);
-    cube->getShader()->setInt("box2_specular_mask", 5);
-
-    /*Mesh * bunny = Mesh::load(std::string(_resources_directory).append("meshes/bunny.obj").c_str());
-    scene.addMesh(bunny);
-    bunny->setPosition(glm::vec3(1.8f, 0.1f, 0));
-    bunny->setScale(glm::vec3(0.5f, 0.5f, 0.5f));*/
+    Texture* box2 = Texture::load(std::string(_resources_directory).append("textures/box2/box2.jpg").c_str());
+    Texture* box2_diffus = Texture::load(std::string(_resources_directory).append("textures/box2/box2-diffus.png").c_str());
+    Texture* box2_diffus_mask = Texture::load(std::string(_resources_directory).append("textures/box2/box2-diffus-mask.png").c_str());
+    Texture* box2_specular = Texture::load(std::string(_resources_directory).append("textures/box2/box2-specular.png").c_str());
+    Texture* box2_specular_albedo = Texture::load(std::string(_resources_directory).append("textures/box2/box2-specular-albedo.png").c_str());
+    Texture* box2_specular_mask = Texture::load(std::string(_resources_directory).append("textures/box2/box2-specular-mask.png").c_str());
 
     Mesh * dragon_small = Mesh::load(std::string(_resources_directory).append("meshes/dragon2_small.obj").c_str());
     scene.addMesh(dragon_small);
     dragon_small->setScale(glm::vec3(2.f, 2.f, 2.f));
     dragon_small->setPosition(glm::vec3(3.f, 0, 0));
 
-    /*Mesh * dragon_smooth = Mesh::load(std::string(_resources_directory).append("meshes/dragon2_smooth.obj").c_str());
-    scene.addMesh(dragon_smooth);
-    dragon_smooth->setPosition(glm::vec3(5.f, -0.5f, 0.f));
-    dragon_smooth->setScale(glm::vec3(2.f, 2.f, 2.f));*/
+    AmbiantLight* ambiantLight = new AmbiantLight();
+    scene.addAmbiantLight(ambiantLight);
+    DirectionalLight* directionalLight = new DirectionalLight();
+    scene.addDirectionalLight(directionalLight);
 
     int width, height;
     double mouseX = 0, mouseY = 0, mouseX_old = 0, mouseY_old = 0, mouseSpeedX = 0, mouseSpeedY = 0;
+
+    Object * selectedObject = nullptr;
+
+    // create a file browser instance
+    ImGui::FileBrowser fileDialog;
+
+    // (optional) set browser properties
+    fileDialog.SetTitle("Charger un objet");
+    fileDialog.SetTypeFilters({ ".obj" });
 
     double start = glfwGetTime();
     while(!glfwWindowShouldClose(window.getGFLWwindow()))
@@ -150,30 +86,148 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowSize(ImVec2(400.0f, float(height)));
+        float windowWidth = 400;
+        float windowHeight = float(height);
+
+        ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         if (ImGui::Begin("Window", nullptr, ImGuiWindowFlags_NoResize)) {
 
             ImGui::TextColored(ImVec4(0,1,0,1), std::string("FPS : " + std::to_string(int(1.f/frameTime))).c_str());
-            ImGui::TextColored(ImVec4(0,1,0,1), std::string("Frame Time : " + std::to_string(frameTime) + "ms").c_str());
+            ImGui::TextColored(ImVec4(0,1,0,1), std::string("Frame Time : " + std::to_string(frameTime*1000) + "ms").c_str());
 
             if (ImGui::BeginTabBar("Tabs")) {
 
                 if (ImGui::BeginTabItem("Scene")) {
 
                     if (ImGui::Button("Charger un objet")) {
+                        fileDialog.Open();
+                    }
 
+                    fileDialog.Display();
+
+                    if (fileDialog.HasSelected())
+                    {
+                        std::string path = fileDialog.GetSelected().string();
+                        fileDialog.ClearSelected();
+                        Mesh * object = Mesh::load(path.c_str());
+                        scene.addMesh(object);
+                        selectedObject = object;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Ajouter un cube")) {
+                        Mesh * mesh = new Cube();
+                        scene.addMesh(mesh);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Ajouter un disque")) {
+                        Mesh * mesh = new Disk();
+                        scene.addMesh(mesh);
+                    }
+
+                    if (ImGui::Button("Ajouter un plan")) {
+                        Mesh * mesh = new Square();
+                        scene.addMesh(mesh);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Ajouter une lumière ambiante")) {
+                        AmbiantLight * light = new AmbiantLight();
+                        scene.addAmbiantLight(light);
+                    }
+
+                    if (ImGui::Button("Ajouter une lumière directionnelle")) {
+                        DirectionalLight * light = new DirectionalLight();
+                        scene.addDirectionalLight(light);
                     }
 
                     ImGui::TextColored(ImVec4(1,1,0,1), "Objets");
-                    ImGui::BeginChild("Scrolling", ImVec2(100, 100));
-                    for (long long unsigned int i = 0; i < scene.getMeshes().size(); ++i) {
-                        //Mesh* m = scene.getMeshes().at(i);
-                        std::string name = "Mesh " + std::to_string(i);
-                        ImGui::Text(name.c_str());
+                    if (ImGui::BeginChild("Mesh list", ImVec2(windowWidth, 200))) {
 
-                    }
-                    ImGui::EndChild();
+                        if (ImGui::Selectable("Camera", scene.getCamera() == selectedObject)) {
+                            selectedObject = scene.getCamera();
+                        }
+
+                        for (long long unsigned int i = 0; i < scene.getAmbiantLights().size(); ++i) {
+                            std::string name = "Ambiant light " + std::to_string(i);
+                            if (ImGui::Selectable(name.c_str(), scene.getAmbiantLights().at(i) == selectedObject)) {
+                                selectedObject = scene.getAmbiantLights().at(i);
+                            }
+                        }
+
+                        for (long long unsigned int i = 0; i < scene.getDirectionalLights().size(); ++i) {
+                            std::string name = "Directional light " + std::to_string(i);
+                            if (ImGui::Selectable(name.c_str(), scene.getDirectionalLights().at(i) == selectedObject)) {
+                                selectedObject = scene.getDirectionalLights().at(i);
+                            }
+                        }
+
+                        for (long long unsigned int i = 0; i < scene.getMeshes().size(); ++i) {
+                            std::string name = "Mesh " + std::to_string(i);
+                            if (ImGui::Selectable(name.c_str(), scene.getMeshes().at(i) == selectedObject)) {
+                                selectedObject = scene.getMeshes().at(i);
+                            }
+                        }
+
+                    } ImGui::EndChild();
+
+                    ImGui::TextColored(ImVec4(1,1,0,1), "Propriétés");
+                    if (ImGui::BeginChild("Properties list", ImVec2(windowWidth, float(height)-400)))
+                    {
+                        if (selectedObject == nullptr) {
+                            ImGui::Text("Aucun objet sélectionné");
+                        } else {
+                            float position[3] = {selectedObject->getPosition().x, selectedObject->getPosition().y, selectedObject->getPosition().z};
+                            float scale[3] = {selectedObject->getScale().x, selectedObject->getScale().y, selectedObject->getScale().z};
+                            float rotation[3] = {selectedObject->getRotation().x, selectedObject->getRotation().y, selectedObject->getRotation().z};
+                            ImGui::DragFloat3("Position", position, 0.1, -100, 100);
+                            ImGui::DragFloat3("Scale", scale, 0.05, -100, 100);
+                            ImGui::DragFloat3("Rotation", rotation, 0.5, -360, 360);
+                            selectedObject->setPosition(glm::vec3(position[0], position[1], position[2]));
+                            selectedObject->setScale(glm::vec3(scale[0], scale[1], scale[2]));
+                            selectedObject->setRotation(glm::vec3(rotation[0], rotation[1], rotation[2]));
+
+                            Mesh* mesh = dynamic_cast<Mesh*>(selectedObject);
+                            Light* light = dynamic_cast<Light*>(selectedObject);
+
+                            if (mesh != nullptr) {
+                                ImGui::TextColored(ImVec4(1,1,0,1), "Propriétés du mesh");
+
+                                ImGui::Text("Shader");
+
+                                if (ImGui::BeginChild("Shaders", ImVec2(windowWidth, 100))) {
+                                    std::map<std::string, Shader*> shaderList = shaderManager.getShaders();
+                                    for (auto it = shaderList.begin(); it != shaderList.end() ; ++it) {
+                                        if (ImGui::Button(it->first.c_str())) {
+                                            mesh->setShader(it->second);
+                                        }
+                                    }
+                                } ImGui::EndChild();
+
+                                if (ImGui::Button("Supprimer")) {
+                                    scene.removeMesh(mesh);
+                                    selectedObject = nullptr;
+                                }
+                            }
+
+                            if (light != nullptr) {
+                                ImGui::TextColored(ImVec4(1,1,0,1), "Propriétés de la lumière");
+                                float color[3] = {light->getColor().r,light->getColor().g,light->getColor().b};
+                                ImGui::ColorEdit3("Couleur", color);
+                                light->setColor(glm::vec3(color[0],color[1],color[2]));
+
+                                AmbiantLight* ambiantLight = dynamic_cast<AmbiantLight*>(light);
+                                DirectionalLight* directionalLight = dynamic_cast<DirectionalLight*>(light);
+
+                                if (ImGui::Button("Supprimer")) {
+                                    if (ambiantLight != nullptr) scene.removeAmbiantLight(ambiantLight);
+                                    else if (directionalLight != nullptr) scene.removeDirectionalLight(directionalLight);
+                                    selectedObject = nullptr;
+                                }
+                            }
+                        }
+
+                    } ImGui::EndChild();
+
                     ImGui::EndTabItem();
                 }
 
@@ -196,6 +250,9 @@ int main() {
                     ImGui::DragFloat("Bloom", &bloom, 0.1,0,5);
                     renderer.setBloom(bloom);
                     ImGui::EndTabItem();
+                    bool renderOutline = renderer.getRenderOutline();
+                    ImGui::Checkbox("Rendu des contours", &renderOutline);
+                    renderer.setRenderOutline(renderOutline);
                 }
 
                 ImGui::EndTabBar();
@@ -228,6 +285,40 @@ int main() {
                 window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
                 glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+                if (window.isPressingKey(GLFW_KEY_UP))
+                    scene.getCamera()->setRotation(
+                            scene.getCamera()->getRotation() + glm::vec3(1 * frameTime * -100, 0, 0));
+                if (window.isPressingKey(GLFW_KEY_DOWN))
+                    scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(1 * frameTime * 100, 0, 0));
+                if (window.isPressingKey(GLFW_KEY_LEFT))
+                    scene.getCamera()->setRotation(
+                            scene.getCamera()->getRotation() + glm::vec3(0, 1 * frameTime * -100, 0));
+                if (window.isPressingKey(GLFW_KEY_RIGHT))
+                    scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(0, 1 * frameTime * 100, 0));
+
+                if (window.isPressingKey(GLFW_KEY_W))
+                    camZ += 1;
+                if (window.isPressingKey(GLFW_KEY_S))
+                    camZ += -1;
+                if (window.isPressingKey(GLFW_KEY_A))
+                    camX += -1;
+                if (window.isPressingKey(GLFW_KEY_D))
+                    camX += 1;
+                if (window.isPressingKey(GLFW_KEY_Q))
+                    camY += -1;
+                if (window.isPressingKey(GLFW_KEY_E))
+                    camY += 1;
+
+                scene.getCamera()->setPosition(
+                        scene.getCamera()->getPosition()
+                        + glm::vec3(forward.x * camZ * frameTime * camSpeed, forward.y * camZ * frameTime * camSpeed,
+                                    forward.z * camZ * frameTime * camSpeed)
+                        + glm::vec3(right.x * camX * frameTime * camSpeed, right.y * camX * frameTime * camSpeed,
+                                    right.z * camX * frameTime * camSpeed)
+                        + glm::vec3(up.x * camY * frameTime * camSpeed, up.y * camY * frameTime * camSpeed,
+                                    up.z * camY * frameTime * camSpeed)
+                );
+
                 if (window.isPressingMouseButton(GLFW_MOUSE_BUTTON_RIGHT) &&
                     window.isPressingMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
                     scene.getCamera()->setPosition(scene.getCamera()->getPosition()
@@ -255,61 +346,15 @@ int main() {
             } else {
                 glfwSetInputMode(window.getGFLWwindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             }
-
-            if (window.isPressingKey(GLFW_KEY_UP))
-                scene.getCamera()->setRotation(
-                        scene.getCamera()->getRotation() + glm::vec3(1 * frameTime * -100, 0, 0));
-            if (window.isPressingKey(GLFW_KEY_DOWN))
-                scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(1 * frameTime * 100, 0, 0));
-            if (window.isPressingKey(GLFW_KEY_LEFT))
-                scene.getCamera()->setRotation(
-                        scene.getCamera()->getRotation() + glm::vec3(0, 1 * frameTime * -100, 0));
-            if (window.isPressingKey(GLFW_KEY_RIGHT))
-                scene.getCamera()->setRotation(scene.getCamera()->getRotation() + glm::vec3(0, 1 * frameTime * 100, 0));
-
-            if (window.isPressingKey(GLFW_KEY_W))
-                camZ += 1;
-            if (window.isPressingKey(GLFW_KEY_S))
-                camZ += -1;
-            if (window.isPressingKey(GLFW_KEY_A))
-                camX += -1;
-            if (window.isPressingKey(GLFW_KEY_D))
-                camX += 1;
-            if (window.isPressingKey(GLFW_KEY_Q))
-                camY += -1;
-            if (window.isPressingKey(GLFW_KEY_E))
-                camY += 1;
-
-            scene.getCamera()->setPosition(
-                    scene.getCamera()->getPosition()
-                    + glm::vec3(forward.x * camZ * frameTime * camSpeed, forward.y * camZ * frameTime * camSpeed,
-                                forward.z * camZ * frameTime * camSpeed)
-                    + glm::vec3(right.x * camX * frameTime * camSpeed, right.y * camX * frameTime * camSpeed,
-                                right.z * camX * frameTime * camSpeed)
-                    + glm::vec3(up.x * camY * frameTime * camSpeed, up.y * camY * frameTime * camSpeed,
-                                up.z * camY * frameTime * camSpeed)
-            );
         }
 
-        cube->getShader()->use();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, box2);
-        cube->getShader()->setInt("box2", 0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, box2_diffus);
-        cube->getShader()->setInt("box2_diffus", 1);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, box2_diffus_mask);
-        cube->getShader()->setInt("box2_diffus_mask", 2);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, box2_specular);
-        cube->getShader()->setInt("box2_specular", 3);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, box2_specular_albedo);
-        cube->getShader()->setInt("box2_specular_albedo", 4);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, box2_specular_mask);
-        cube->getShader()->setInt("box2_specular_mask", 5);
+        textureShader->use();
+        textureShader->setTexture("box2", box2->getTexture(), 0);
+        textureShader->setTexture("box2_diffus", box2_diffus->getTexture(), 1);
+        textureShader->setTexture("box2_diffus_mask", box2_diffus_mask->getTexture(), 2);
+        textureShader->setTexture("box2_specular", box2_specular->getTexture(), 3);
+        textureShader->setTexture("box2_specular_albedo", box2_specular_albedo->getTexture(), 4);
+        textureShader->setTexture("box2_specular_mask", box2_specular_mask->getTexture(), 5);
 
         renderer.setScreenSize(width, height);
         renderer.render(&scene);
@@ -323,3 +368,5 @@ int main() {
 
     return 0;
 }
+
+

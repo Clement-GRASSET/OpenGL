@@ -27,6 +27,17 @@ uniform ambiantLight ambiantLights[64];
 uniform int nbDirectionalLights;
 uniform directionalLight directionalLights[64];
 
+float tramage(float size, float offset)
+{
+    return 1-step(offset, sin(gl_FragCoord.x*size) * sin(gl_FragCoord.y*size) );
+}
+
+float discontinuites()
+{
+    float x = 1-length(dFdx(normals));
+    float y = 1-length(dFdy(normals));
+    return x*y;
+}
 
 void main()
 {
@@ -46,12 +57,25 @@ void main()
         specular += pow(max(dot(viewDir, reflectDir), 0.0), 1024) * directionalLights[i].Color;
     }
 
-    vec4 colorTexture = vec4(0.4, 0.4, 0.4, 1);
+
+    vec3 celShading1 = step(0.8f, illumination);
+    vec3 celShading2 = step(0.5f, illumination) - celShading1;
+    vec3 celShading3 = step(0.1f, illumination) - celShading2 - celShading1;
+
+    vec3 trame1 = celShading2 * tramage(0.8, 0.8);
+    vec3 trame2 = celShading3 * tramage(0.8, 0.1);
+
+    float discontinuites = step(0.8, discontinuites());
+
+
+    vec4 colorTexture = vec4(0.4, 0.4, 0.4, 1) * vec4(
+        celShading1 * 0.8f + celShading2 * 0.5f * trame1 + celShading3 * 0.1f * trame2
+    , 1);
     vec4 specularTexture = vec4(1);
 
 
     FragColor = vec4(
-        vec3(colorTexture.rgb) * illumination + vec3(specularTexture.rgb) * specular,
+        vec3(colorTexture.rgb) * discontinuites + vec3(specularTexture.rgb) * specular,
         1
     );
 

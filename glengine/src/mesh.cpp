@@ -1,21 +1,16 @@
-#include "glengine/mesh.hpp"
-//#include <glengine/glengine.hpp>
+#include <glengine/mesh.hpp>
+#include <glengine/shaderManager.hpp>
 
 extern const char* _resources_directory;
 
 namespace GLEngine {
 
-    Mesh::Mesh() {
-        position = glm::vec3(0.f, 0.f, 0.f);
-        scale = glm::vec3(1.f, 1.f, 1.f);
-
+    Mesh::Mesh()
+    {
         vertices = {};
         indices = {};
 
-        shader = new Shader(
-                std::string(_resources_directory).append("shaders/default.vert").c_str(),
-                std::string(_resources_directory).append("shaders/default.frag").c_str()
-        );
+        shader = ShaderManager::getDefault();
 
         glGenBuffers(1, &VBO);
         glGenVertexArrays(1, &VAO);
@@ -23,28 +18,7 @@ namespace GLEngine {
     }
 
     Mesh::~Mesh() {
-        delete shader;
-    }
 
-    void Mesh::render(glm::mat4 &view, glm::mat4 &projection, Shader* _shader) const {
-        //_shader->setVec3("viewPos", glm::vec3(1.f, 0.f, 0.f));
-
-        //_shader->setInt("ourTexture", 0);
-
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::scale(model, scale);
-        model = glm::translate(model, position);
-        //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-        _shader->use();
-        _shader->setMat4fv("model", model);
-        _shader->setMat4fv("view", view);
-        _shader->setMat4fv("projection", projection);
-
-        //glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBindVertexArray(VAO);
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     }
 
     Shader *Mesh::getShader() const {

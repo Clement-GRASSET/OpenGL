@@ -43,6 +43,9 @@ namespace GLEngine {
 
         inline float getBloom() const {return bloom;}
         inline void setBloom(float _bloom) {bloom = _bloom;}
+
+        inline bool getRenderOutline() const {return renderOutline;}
+        inline void setRenderOutline(bool _renderOutline) {renderOutline = _renderOutline;}
     };
 
 }

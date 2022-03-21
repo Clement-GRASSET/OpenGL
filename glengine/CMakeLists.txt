@@ -15,13 +15,16 @@ configure_file(
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include BEFORE)
 
 set(SRC
-	${SRC_DIR}/glengine.cpp
-	${SRC_DIR}/shader.cpp
-	${SRC_DIR}/mesh.cpp
-	${SRC_DIR}/scene.cpp
-	${SRC_DIR}/renderer.cpp
-	${SRC_DIR}/window.cpp
-	${SRC_DIR}/camera.cpp
+		${SRC_DIR}/glengine.cpp
+		${SRC_DIR}/shader.cpp
+		${SRC_DIR}/object.cpp
+		${SRC_DIR}/mesh.cpp
+		${SRC_DIR}/scene.cpp
+		${SRC_DIR}/renderer.cpp
+		${SRC_DIR}/window.cpp
+		${SRC_DIR}/camera.cpp
+		${SRC_DIR}/texture.cpp
+		${SRC_DIR}/shaderManager.cpp
 )
 
 set(HEADER

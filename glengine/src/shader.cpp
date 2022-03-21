@@ -109,4 +109,11 @@ namespace GLEngine {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
     }
 
+    void Shader::setTexture(const std::string &name, unsigned int textureID, int index) const
+    {
+        glActiveTexture(GL_TEXTURE0 + index);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        setInt(name, index);
+    }
+
 } // engine

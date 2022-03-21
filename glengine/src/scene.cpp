@@ -13,4 +13,40 @@ namespace GLEngine {
 
     }
 
+    void Scene::removeMesh(Mesh *m)
+    {
+        for (auto it = meshes.begin(); it != meshes.end() ; ++it) {
+            Mesh* current = *it;
+            if (current == m) {
+                meshes.erase(it);
+                delete m;
+                return;
+            }
+        }
+    }
+
+    void Scene::removeAmbiantLight(AmbiantLight *l)
+    {
+        for (auto it = ambiantLights.begin(); it != ambiantLights.end() ; ++it) {
+            AmbiantLight* current = *it;
+            if (current == l) {
+                ambiantLights.erase(it);
+                delete l;
+                return;
+            }
+        }
+    }
+
+    void Scene::removeDirectionalLight(DirectionalLight *l)
+    {
+        for (auto it = directionalLights.begin(); it != directionalLights.end() ; ++it) {
+            DirectionalLight* current = *it;
+            if (current == l) {
+                directionalLights.erase(it);
+                delete l;
+                return;
+            }
+        }
+    }
+
 }

@@ -3,15 +3,15 @@
 
 #include <vector>
 #include <glengine/shader.hpp>
+#include <glengine/object.hpp>
 
 namespace GLEngine {
 
-    class Mesh {
+    class Mesh : public Object {
 
     private:
         std::vector<float> normals;
         Shader * shader;
-        glm::vec3 position, scale;
 
     protected:
         unsigned int VAO, VBO, EBO;
@@ -23,15 +23,15 @@ namespace GLEngine {
     public:
         Mesh();
         ~Mesh();
-        void render(glm::mat4 &view, glm::mat4 &projection, Shader* _shader) const;
         Shader *getShader() const;
         void setShader(Shader *shader);
 
-        inline void setScale(glm::vec3 _scale) { scale = _scale; }
-        inline void setPosition(glm::vec3 _position) { position = _position; }
-
         inline void setVertices(std::vector<float> _vertices) { vertices = _vertices; }
         inline void setIndices(std::vector<unsigned int> _indices) { indices = _indices; }
+
+        inline unsigned int getVAO() const { return VAO; }
+        inline std::vector<float> getVertices() const { return vertices; }
+        inline std::vector<unsigned int> getIndices() const { return indices; }
 
         static Mesh* load(const char* path);
 

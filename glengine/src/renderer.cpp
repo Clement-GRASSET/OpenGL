@@ -76,6 +76,13 @@ namespace GLEngine {
 
         for (auto & m : scene->getMeshes()) {
 
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, m->getPosition());
+            model = glm::rotate(model, glm::radians(m->getRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(m->getRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(m->getRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::scale(model, m->getScale());
+
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
             glStencilMask(0xFF);
 
@@ -83,14 +90,37 @@ namespace GLEngine {
             m->getShader()->setVec3("viewPos", camera->getPosition());
             m->getShader()->setInt("width", int(width));
             m->getShader()->setInt("height", int(height));
-            m->render(view, projection, m->getShader());
+
+            m->getShader()->setInt(std::string("nbAmbiantLights"), scene->getAmbiantLights().size());
+            for (int i = 0; i < scene->getAmbiantLights().size(); ++i) {
+                m->getShader()->setVec3(std::string("ambiantLights[").append(std::to_string(i)).append("].Color"), scene->getAmbiantLights().at(i)->getColor());
+            }
+
+            m->getShader()->setInt(std::string("nbDirectionalLights"), scene->getDirectionalLights().size());
+            for (int i = 0; i < scene->getDirectionalLights().size(); ++i) {
+                m->getShader()->setVec3(std::string("directionalLights[").append(std::to_string(i)).append("].Color"), scene->getDirectionalLights().at(i)->getColor());
+                m->getShader()->setVec3(std::string("directionalLights[").append(std::to_string(i)).append("].Direction"), scene->getDirectionalLights().at(i)->getForwardVector());
+            }
+
+            m->getShader()->use();
+            m->getShader()->setMat4fv("model", model);
+            m->getShader()->setMat4fv("view", view);
+            m->getShader()->setMat4fv("projection", projection);
+
+            glBindVertexArray(m->getVAO());
+            glDrawElements(GL_TRIANGLES, m->getIndices().size(), GL_UNSIGNED_INT, 0);
 
             if (renderOutline) {
                 glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
                 glStencilMask(0x00);
                 glDisable(GL_DEPTH_TEST);
 
-                m->render(view, projection, scaleShader);
+                scaleShader->use();
+                scaleShader->setMat4fv("model", model);
+                scaleShader->setMat4fv("view", view);
+                scaleShader->setMat4fv("projection", projection);
+                //m->render(view, projection, scaleShader);
+                glDrawElements(GL_TRIANGLES, m->getIndices().size(), GL_UNSIGNED_INT, 0);
 
                 glStencilMask(0xFF);
                 glStencilFunc(GL_ALWAYS, 1, 0xFF);

@@ -3,6 +3,13 @@
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 BloomColor;
 
+uniform sampler2D box2;
+uniform sampler2D box2_diffus;
+uniform sampler2D box2_diffus_mask;
+uniform sampler2D box2_specular;
+uniform sampler2D box2_specular_albedo;
+uniform sampler2D box2_specular_mask;
+
 uniform int width, height;
 in vec3 color;
 in vec3 normals;
@@ -27,7 +34,6 @@ uniform ambiantLight ambiantLights[64];
 uniform int nbDirectionalLights;
 uniform directionalLight directionalLights[64];
 
-
 void main()
 {
     vec3 viewDir = normalize(viewPos - fragPos);
@@ -46,8 +52,9 @@ void main()
         specular += pow(max(dot(viewDir, reflectDir), 0.0), 1024) * directionalLights[i].Color;
     }
 
-    vec4 colorTexture = vec4(0.4, 0.4, 0.4, 1);
-    vec4 specularTexture = vec4(1);
+
+    vec4 colorTexture = texture(box2_diffus, UV) * texture(box2_diffus_mask, UV) * vec4(1,0.8,0.5,1) + texture(box2_specular_albedo, UV) * texture(box2_specular_mask, UV);
+    vec4 specularTexture = texture(box2_specular, UV);
 
 
     FragColor = vec4(
