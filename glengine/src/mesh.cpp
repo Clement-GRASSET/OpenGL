@@ -37,7 +37,7 @@ namespace GLEngine {
         //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
         _shader->use();
-        _shader->setMat4fv("model", model);;
+        _shader->setMat4fv("model", model);
         _shader->setMat4fv("view", view);
         _shader->setMat4fv("projection", projection);
 

@@ -11,7 +11,7 @@ namespace GLEngine {
 
     public:
         Cube()
-                : Mesh()
+        : Mesh()
         {
             vertices = {
                     // positions          // normals           // texture coords

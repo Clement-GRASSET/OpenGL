@@ -19,6 +19,8 @@
 
 using namespace GLEngine;
 
+extern const char* _resources_directory;
+
 unsigned int loadTexture(const char* path, GLint colors)
 {
     //glActiveTexture(GL_TEXTURE0);
@@ -77,12 +79,12 @@ int main() {
     cube->setPosition(glm::vec3(0.f, 0.f, 0.f));
     //cube->setScale(glm::vec3(2.f, 2.f, 2.f));
 
-    unsigned int box2 = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2.jpg", GL_RGB);
-    unsigned int box2_diffus = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-diffus.png", GL_RGB);
-    unsigned int box2_diffus_mask = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-diffus-mask.png", GL_RGBA);
-    unsigned int box2_specular = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular.png", GL_RGBA);
-    unsigned int box2_specular_albedo = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular-albedo.png", GL_RGBA);
-    unsigned int box2_specular_mask = loadTexture("E:\\IUT\\Projets\\OpenGL\\glengine\\resources\\textures\\box2\\box2-specular-mask.png", GL_RGBA);
+    unsigned int box2 = loadTexture(std::string(_resources_directory).append("textures/box2/box2.jpg").c_str(), GL_RGB);
+    unsigned int box2_diffus = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus.png").c_str(), GL_RGB);
+    unsigned int box2_diffus_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus-mask.png").c_str(), GL_RGBA);
+    unsigned int box2_specular = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular.png").c_str(), GL_RGBA);
+    unsigned int box2_specular_albedo = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-albedo.png").c_str(), GL_RGBA);
+    unsigned int box2_specular_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-mask.png").c_str(), GL_RGBA);
 
     cube->getShader()->use();
     glActiveTexture(GL_TEXTURE0);
@@ -104,20 +106,20 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, box2_specular_mask);
     cube->getShader()->setInt("box2_specular_mask", 5);
 
-    //Mesh * bunny = Mesh::load("C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/meshes/bunny.obj");
-    //scene.addMesh(bunny);
-    //bunny->setPosition(glm::vec3(1.8f, 0.1f, 0));
-    //bunny->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Mesh * bunny = Mesh::load(std::string(_resources_directory).append("meshes/bunny.obj").c_str());
+    scene.addMesh(bunny);
+    bunny->setPosition(glm::vec3(1.8f, 0.1f, 0));
+    bunny->setScale(glm::vec3(0.5f, 0.5f, 0.5f));
 
-    Mesh * dragon_small = Mesh::load("E:/IUT/Projets/OpenGL/glengine/resources/meshes/dragon2_small.obj");
+    Mesh * dragon_small = Mesh::load(std::string(_resources_directory).append("meshes/dragon2_small.obj").c_str());
     scene.addMesh(dragon_small);
     dragon_small->setScale(glm::vec3(2.f, 2.f, 2.f));
     dragon_small->setPosition(glm::vec3(3.f, 0, 0));
 
-    /*Mesh * dragon_smooth = Mesh::load("C:/Users/Clement/Documents/IUT/Projets/OpenGL/glengine/resources/meshes/dragon2_smooth.obj");
+    Mesh * dragon_smooth = Mesh::load(std::string(_resources_directory).append("meshes/dragon2_smooth.obj").c_str());
     scene.addMesh(dragon_smooth);
     dragon_smooth->setPosition(glm::vec3(5.f, -0.5f, 0.f));
-    dragon_smooth->setScale(glm::vec3(2.f, 2.f, 2.f));*/
+    dragon_smooth->setScale(glm::vec3(2.f, 2.f, 2.f));
 
     int width, height;
     double mouseX = 0, mouseY = 0, mouseX_old = 0, mouseY_old = 0, mouseSpeedX = 0, mouseSpeedY = 0;
@@ -135,7 +137,7 @@ int main() {
         if (timeBeforeRefresh <= 0) {
             std::string title = "FPS : " + std::to_string(int(1.f/frameTime)) + ", frame time : " + std::to_string(frameTime) + "ms";
             glfwSetWindowTitle(window.getGFLWwindow(), title.c_str());
-            timeBeforeRefresh = 0.5;
+            timeBeforeRefresh = 0.2;
         }
 
         glfwGetWindowSize(window.getGFLWwindow(), &width, &height);

@@ -59,7 +59,6 @@ namespace GLEngine {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
-        free(win);
     }
 
     bool Window::isPressingKey(int key) {
