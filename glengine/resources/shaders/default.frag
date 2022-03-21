@@ -40,7 +40,7 @@ void main()
 
     vec3 viewDir = normalize(viewPos - fragPos);
     vec3 reflectDir = reflect(lightDir, normals);
-    float phong = pow(max(dot(viewDir, reflectDir), 0.0), 256);
+    float phong = pow(max(dot(viewDir, reflectDir), 0.0), 1024) * 2;
 
     vec3 celShading1 = step(0.8f, illumination);
     vec3 celShading2 = step(0.5f, illumination);
@@ -56,13 +56,15 @@ void main()
     vec4 color = texture(box2_diffus, UV) * texture(box2_diffus_mask, UV) * vec4(1,0.8,0.5,1) + texture(box2_specular_albedo, UV) * texture(box2_specular_mask, UV);
     vec4 specular = texture(box2_specular, UV);
 
-    color = vec4(0.2, 0.4, 0.6, 1);
-    specular = vec4(1);
+    //color = vec4(0.2, 0.4, 0.6, 1);
+    //specular = vec4(1);
 
-    FragColor = vec4(illumination,1) * color * vec4(vec3(discontinuites), 1) + specular * vec4(vec3(phong), 1);
+    FragColor = color * vec4(vec3(discontinuites), 1) * vec4(illumination,1) + specular * vec4(vec3(phong), 1);
 
     float brightness = dot(FragColor.rgb, vec3(.2126f, .7152f, .0722f));
     // BloomColor = (brightness > 0.5f) ? FragColor : vec4(0,0,0,1);
 
-    BloomColor = vec4(vec3(pow(brightness, 4)),1) * FragColor;
+    BloomColor = vec4(vec3(
+        pow(brightness, 4)
+    ),1) * FragColor;
 }

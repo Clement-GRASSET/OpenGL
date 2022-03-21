@@ -106,7 +106,7 @@ namespace GLEngine {
         }
 
         bool horizontal = true, first_iteration = true;
-        unsigned int amount = 10;
+        unsigned int amount = 6;
         blurShader->use();
         for (unsigned int i = 0; i < amount; i++)
         {

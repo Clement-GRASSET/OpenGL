@@ -21,7 +21,7 @@ using namespace GLEngine;
 
 extern const char* _resources_directory;
 
-unsigned int loadTexture(const char* path, GLint colors)
+unsigned int loadTexture(const char* path)
 {
     //glActiveTexture(GL_TEXTURE0);
     unsigned int texture;
@@ -40,7 +40,21 @@ unsigned int loadTexture(const char* path, GLint colors)
         /*for (size_t i = 0; i < width*height*nrChannels; ++i) {
             std::cout << (unsigned int)(data[i]) << ", ";
         }*/
-        glTexImage2D(GL_TEXTURE_2D, 0, colors, width, height, 0, colors, GL_UNSIGNED_BYTE, data);
+        switch (nrChannels) {
+            case 3: {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+                break;
+            }
+            case 4: {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                break;
+            }
+            default: {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                break;
+            }
+        }
+
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -79,12 +93,12 @@ int main() {
     cube->setPosition(glm::vec3(0.f, 0.f, 0.f));
     //cube->setScale(glm::vec3(2.f, 2.f, 2.f));
 
-    unsigned int box2 = loadTexture(std::string(_resources_directory).append("textures/box2/box2.jpg").c_str(), GL_RGB);
-    unsigned int box2_diffus = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus.png").c_str(), GL_RGB);
-    unsigned int box2_diffus_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus-mask.png").c_str(), GL_RGBA);
-    unsigned int box2_specular = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular.png").c_str(), GL_RGBA);
-    unsigned int box2_specular_albedo = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-albedo.png").c_str(), GL_RGBA);
-    unsigned int box2_specular_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-mask.png").c_str(), GL_RGBA);
+    unsigned int box2 = loadTexture(std::string(_resources_directory).append("textures/box2/box2.jpg").c_str());
+    unsigned int box2_diffus = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus.png").c_str());
+    unsigned int box2_diffus_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-diffus-mask.png").c_str());
+    unsigned int box2_specular = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular.png").c_str());
+    unsigned int box2_specular_albedo = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-albedo.png").c_str());
+    unsigned int box2_specular_mask = loadTexture(std::string(_resources_directory).append("textures/box2/box2-specular-mask.png").c_str());
 
     cube->getShader()->use();
     glActiveTexture(GL_TEXTURE0);
@@ -209,6 +223,26 @@ int main() {
             + glm::vec3(right.x*camX*frameTime*camSpeed,right.y*camX*frameTime*camSpeed,right.z*camX*frameTime*camSpeed)
             + glm::vec3(up.x*camY*frameTime*camSpeed,up.y*camY*frameTime*camSpeed,up.z*camY*frameTime*camSpeed)
         );
+
+        cube->getShader()->use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, box2);
+        cube->getShader()->setInt("box2", 0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, box2_diffus);
+        cube->getShader()->setInt("box2_diffus", 1);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, box2_diffus_mask);
+        cube->getShader()->setInt("box2_diffus_mask", 2);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, box2_specular);
+        cube->getShader()->setInt("box2_specular", 3);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, box2_specular_albedo);
+        cube->getShader()->setInt("box2_specular_albedo", 4);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, box2_specular_mask);
+        cube->getShader()->setInt("box2_specular_mask", 5);
 
         renderer.setScreenSize(width, height);
         renderer.render(&scene);
