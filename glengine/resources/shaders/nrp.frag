@@ -21,11 +21,23 @@ struct directionalLight
     vec3 Direction;
 };
 
+struct pointLight
+{
+    vec3 Color;
+    vec3 Position;
+    float Constant;
+    float Linear;
+    float Quadratic;
+};
+
 uniform int nbAmbiantLights;
 uniform ambiantLight ambiantLights[64];
 
 uniform int nbDirectionalLights;
 uniform directionalLight directionalLights[64];
+
+uniform int nbPointLights;
+uniform pointLight pointLights[64];
 
 float tramage(float size, float offset)
 {
@@ -36,7 +48,8 @@ float discontinuites()
 {
     float x = 1-length(dFdx(normals));
     float y = 1-length(dFdy(normals));
-    return x*y;
+    float distance = length(fragPos-viewPos);
+    return clamp(pow(x*y, 1/distance), 0, 1);
 }
 
 void main()
@@ -57,6 +70,22 @@ void main()
         specular += pow(max(dot(viewDir, reflectDir), 0.0), 1024) * directionalLights[i].Color;
     }
 
+    for (int i = 0; i < nbPointLights; i++) {
+        vec3 lightDir = normalize(pointLights[i].Position - fragPos);
+        // diffuse shading
+        float diff = max(dot(normals, lightDir), 0.0);
+        // specular shading
+        vec3 reflectDir = reflect(-lightDir, normals);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1024);
+
+        // attenuation
+        float distance = length(pointLights[i].Position - fragPos);
+        float attenuation = 1.0 / (pointLights[i].Constant + pointLights[i].Linear * distance + pointLights[i].Quadratic * (distance * distance));
+
+        illumination += diff * pointLights[i].Color * attenuation;
+        specular += spec * pointLights[i].Color * attenuation;
+    }
+
 
     vec3 celShading1 = step(0.8f, illumination);
     vec3 celShading2 = step(0.5f, illumination) - celShading1;
@@ -65,7 +94,7 @@ void main()
     vec3 trame1 = celShading2 * tramage(0.8, 0.8);
     vec3 trame2 = celShading3 * tramage(0.8, 0.1);
 
-    float discontinuites = step(0.8, discontinuites());
+    float discontinuites = step(0.95, discontinuites());
 
 
     vec4 colorTexture = vec4(0.4, 0.4, 0.4, 1) * vec4(

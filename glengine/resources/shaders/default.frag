@@ -21,11 +21,23 @@ struct directionalLight
     vec3 Direction;
 };
 
+struct pointLight
+{
+    vec3 Color;
+    vec3 Position;
+    float Constant;
+    float Linear;
+    float Quadratic;
+};
+
 uniform int nbAmbiantLights;
 uniform ambiantLight ambiantLights[64];
 
 uniform int nbDirectionalLights;
 uniform directionalLight directionalLights[64];
+
+uniform int nbPointLights;
+uniform pointLight pointLights[64];
 
 
 void main()
@@ -44,6 +56,22 @@ void main()
 
         vec3 reflectDir = reflect(directionalLights[i].Direction, normals);
         specular += pow(max(dot(viewDir, reflectDir), 0.0), 1024) * directionalLights[i].Color;
+    }
+
+    for (int i = 0; i < nbPointLights; i++) {
+        vec3 lightDir = normalize(pointLights[i].Position - fragPos);
+        // diffuse shading
+        float diff = max(dot(normals, lightDir), 0.0);
+        // specular shading
+        vec3 reflectDir = reflect(-lightDir, normals);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1024);
+
+        // attenuation
+        float distance = length(pointLights[i].Position - fragPos);
+        float attenuation = 1.0 / (pointLights[i].Constant + pointLights[i].Linear * distance + pointLights[i].Quadratic * (distance * distance));
+
+        illumination += diff * pointLights[i].Color * attenuation;
+        specular += spec * pointLights[i].Color * attenuation;
     }
 
     vec4 colorTexture = vec4(0.4, 0.4, 0.4, 1);

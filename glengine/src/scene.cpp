@@ -49,4 +49,15 @@ namespace GLEngine {
         }
     }
 
+    void Scene::removePointLight(PointLight *l) {
+        for (auto it = pointLights.begin(); it != pointLights.end() ; ++it) {
+            PointLight* current = *it;
+            if (current == l) {
+                pointLights.erase(it);
+                delete l;
+                return;
+            }
+        }
+    }
+
 }

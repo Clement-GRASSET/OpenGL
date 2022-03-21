@@ -140,6 +140,11 @@ int main() {
                         scene.addDirectionalLight(light);
                     }
 
+                    if (ImGui::Button("Ajouter une lumière ponctuelle")) {
+                        PointLight * light = new PointLight();
+                        scene.addPointLight(light);
+                    }
+
                     ImGui::TextColored(ImVec4(1,1,0,1), "Objets");
                     if (ImGui::BeginChild("Mesh list", ImVec2(windowWidth, 200))) {
 
@@ -161,6 +166,13 @@ int main() {
                             }
                         }
 
+                        for (long long unsigned int i = 0; i < scene.getPointLights().size(); ++i) {
+                            std::string name = "Point light " + std::to_string(i);
+                            if (ImGui::Selectable(name.c_str(), scene.getPointLights().at(i) == selectedObject)) {
+                                selectedObject = scene.getPointLights().at(i);
+                            }
+                        }
+
                         for (long long unsigned int i = 0; i < scene.getMeshes().size(); ++i) {
                             std::string name = "Mesh " + std::to_string(i);
                             if (ImGui::Selectable(name.c_str(), scene.getMeshes().at(i) == selectedObject)) {
@@ -171,7 +183,7 @@ int main() {
                     } ImGui::EndChild();
 
                     ImGui::TextColored(ImVec4(1,1,0,1), "Propriétés");
-                    if (ImGui::BeginChild("Properties list", ImVec2(windowWidth, float(height)-400)))
+                    if (ImGui::BeginChild("Properties list", ImVec2(windowWidth, float(height)-450)))
                     {
                         if (selectedObject == nullptr) {
                             ImGui::Text("Aucun objet sélectionné");
@@ -217,10 +229,24 @@ int main() {
 
                                 AmbiantLight* ambiantLight = dynamic_cast<AmbiantLight*>(light);
                                 DirectionalLight* directionalLight = dynamic_cast<DirectionalLight*>(light);
+                                PointLight* pointLight = dynamic_cast<PointLight*>(light);
+
+                                if (pointLight != nullptr) {
+                                    float constant = pointLight->getConstant();
+                                    float linear = pointLight->getLinear();
+                                    float quadratic = pointLight->getQuadratic();
+                                    ImGui::DragFloat("Constant", &constant);
+                                    ImGui::DragFloat("Linear", &linear);
+                                    ImGui::DragFloat("Quadratic", &quadratic);
+                                    pointLight->setConstant(constant);
+                                    pointLight->setLinear(linear);
+                                    pointLight->setQuadratic(quadratic);
+                                }
 
                                 if (ImGui::Button("Supprimer")) {
                                     if (ambiantLight != nullptr) scene.removeAmbiantLight(ambiantLight);
                                     else if (directionalLight != nullptr) scene.removeDirectionalLight(directionalLight);
+                                    else if (pointLight != nullptr) scene.removePointLight(pointLight);
                                     selectedObject = nullptr;
                                 }
                             }

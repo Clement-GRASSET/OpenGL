@@ -5,7 +5,7 @@ extern const char* _resources_directory;
 namespace GLEngine {
 
     Renderer::Renderer()
-    : width(1), height(1), backgroundColor(glm::vec4(0.1,0.1,0.1,1.0)), gamma(2.2f), exposition(1.f), bloom(1.f), renderOutline(true), framebuffer(0), textureColorBuffer(0), textureBloomBuffer(0), rbo(0), screenVAO(0), screenVBO(0), screenEBO(0)
+    : width(1), height(1), backgroundColor(glm::vec4(0.1,0.1,0.1,1.0)), gamma(2.2f), exposition(1.f), bloom(1.f), renderOutline(false), framebuffer(0), textureColorBuffer(0), textureBloomBuffer(0), rbo(0), screenVAO(0), screenVBO(0), screenEBO(0)
     {
         scaleShader = new Shader(
                 std::string(_resources_directory).append("shaders/scale.vert").c_str(),
@@ -92,14 +92,23 @@ namespace GLEngine {
             m->getShader()->setInt("height", int(height));
 
             m->getShader()->setInt(std::string("nbAmbiantLights"), scene->getAmbiantLights().size());
-            for (int i = 0; i < scene->getAmbiantLights().size(); ++i) {
+            for (size_t i = 0; i < scene->getAmbiantLights().size(); ++i) {
                 m->getShader()->setVec3(std::string("ambiantLights[").append(std::to_string(i)).append("].Color"), scene->getAmbiantLights().at(i)->getColor());
             }
 
             m->getShader()->setInt(std::string("nbDirectionalLights"), scene->getDirectionalLights().size());
-            for (int i = 0; i < scene->getDirectionalLights().size(); ++i) {
+            for (size_t i = 0; i < scene->getDirectionalLights().size(); ++i) {
                 m->getShader()->setVec3(std::string("directionalLights[").append(std::to_string(i)).append("].Color"), scene->getDirectionalLights().at(i)->getColor());
                 m->getShader()->setVec3(std::string("directionalLights[").append(std::to_string(i)).append("].Direction"), scene->getDirectionalLights().at(i)->getForwardVector());
+            }
+
+            m->getShader()->setInt(std::string("nbPointLights"), scene->getPointLights().size());
+            for (size_t i = 0; i < scene->getPointLights().size(); ++i) {
+                m->getShader()->setVec3(std::string("pointLights[").append(std::to_string(i)).append("].Color"), scene->getPointLights().at(i)->getColor());
+                m->getShader()->setVec3(std::string("pointLights[").append(std::to_string(i)).append("].Position"), scene->getPointLights().at(i)->getPosition());
+                m->getShader()->setFloat(std::string("pointLights[").append(std::to_string(i)).append("].Constant"), scene->getPointLights().at(i)->getConstant());
+                m->getShader()->setFloat(std::string("pointLights[").append(std::to_string(i)).append("].Linear"), scene->getPointLights().at(i)->getLinear());
+                m->getShader()->setFloat(std::string("pointLights[").append(std::to_string(i)).append("].Quadratic"), scene->getPointLights().at(i)->getQuadratic());
             }
 
             m->getShader()->use();
@@ -119,7 +128,6 @@ namespace GLEngine {
                 scaleShader->setMat4fv("model", model);
                 scaleShader->setMat4fv("view", view);
                 scaleShader->setMat4fv("projection", projection);
-                //m->render(view, projection, scaleShader);
                 glDrawElements(GL_TRIANGLES, m->getIndices().size(), GL_UNSIGNED_INT, 0);
 
                 glStencilMask(0xFF);
